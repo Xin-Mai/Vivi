@@ -5,7 +5,7 @@
             style="width: 100px; height: 100px;"
             :src="imgList[this.id].url"></el-image>           
         </el-card>
-        <el-pagination  layout="prev, pager, next" :total=3 :page-size="1" :current-page="id+1" @current-change="changeHandeler"></el-pagination>
+        <el-pagination  layout="prev, pager, next" :total="imgNum" :page-size="1" :current-page="id+1" @current-change="changeHandeler"></el-pagination>
     </div>
 </template>
 <script>

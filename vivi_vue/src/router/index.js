@@ -4,6 +4,8 @@ import AppIndex from '@/components/home/AppIndex'
 import FollowIndex from '@/components/home/FollowIndex.vue'
 import Login from '@/components/Login'
 import Home from '@/components/Home.vue'
+import UserCenter from '@/components/home/UserCenter'
+import Register from '@/components/Register'
 
 Vue.use(Router)
 
@@ -28,6 +30,12 @@ export default new Router({
           name:'FollowIndex',
           component:FollowIndex,
           meta:{requireAuth:true}
+        },
+        {
+          path:'/usercenter',
+          name:'UserCenter',
+          component:UserCenter,
+          meta:{requireAuth:true}
         }
       ]
     },
@@ -35,6 +43,11 @@ export default new Router({
       path: '/login',
       name: 'Login',
       component: Login
+    },
+    {
+      path:'/register',
+      name:'Register',
+      component:Register
     }
   ]
 })

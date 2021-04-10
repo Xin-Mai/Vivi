@@ -11,6 +11,7 @@
     <el-form-item>
       <el-button type="primary" v-on:click="login" class="login_button">登录</el-button>
     </el-form-item>
+    <el-link class="register" :underline="false" :href="this.registerUrl">注册</el-link>
   </el-form>
 </body>
 </template>
@@ -24,7 +25,8 @@
         username:'',
         password:''
      },
-     responseResult:[]
+     responseResult:[],
+     registerUrl:'/register',
     }
   },
   methods:{
@@ -43,6 +45,10 @@
           }
         })
         .catch(failResponse=>{
+          this.$notify.error({
+          title: '登录失败',
+          message: '请重新登录'
+        });
         })
     }
   }
@@ -76,5 +82,12 @@
     width: 100%;
     background: #818283;
     border: none;
+  }
+  .register{
+    float: right;
+    color: #909399;
+  }
+  .register:hover{
+    color: white;
   }
 </style>

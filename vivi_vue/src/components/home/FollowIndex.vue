@@ -1,10 +1,6 @@
 <template>
     <div>
-         <el-image
-            style="width: 100px; height: 100px"
-            :src="img1"></el-image>
         <box class="flexbox">
-            <h3>Hello again!</h3>
         </box>
         <div class="tri">
             <div class="left">
@@ -37,13 +33,12 @@
 </template>
 
 <script>
-import img1 from '@/assets/bg.jpg'
+import ItemCard from '../common/itemCard.vue'
 export default {
     name:'FollowIndex',
+    components:{ItemCard},
     data(){
         return{
-        url:'/src/assets/bg.jpg',
-        img1:img1
         }
     }
 }
