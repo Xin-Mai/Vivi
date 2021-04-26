@@ -22,17 +22,25 @@ export default {
 </script>
 
 <style scoped>
+/*字体颜色*/
+.container{
+    --name-color:#606266;
+    --intro-color:#909399;
+    --name-hover-color:black;
+}
 .name{
     font-size: 16px;
+    color:var( --name-color);
 }
 .name:hover{
-    color: black;
+    color: var(--name-hover-color);
 }
 .intro{
     font-size: 14px;
     color:#909399;
 }
 .container{
+    min-width: 150px;
     display: flex;
     flex-direction: row;
     justify-content: flex-start;

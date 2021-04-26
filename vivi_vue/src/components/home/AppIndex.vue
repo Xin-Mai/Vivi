@@ -1,16 +1,22 @@
 <template>
     <div>
-        <el-backtop target=".page-component__scroll .el-scrollbar__wrap"></el-backtop>
         <show-card></show-card>
         <div class="main-container">
             <div class="content-list">
                 <item-card v-for="i in contentList.length" v-bind:key="i"></item-card>
             </div>
-            <div class="recommend-list">
-                <el-card class="card">
-                    <div class="recommend-header">推荐作者</div>
-                    <one-line-desc v-for="i in recommendList.length" v-bind:key="i"></one-line-desc>
-                </el-card>
+            <div class="side-bar">
+                <div class="list">
+                    <el-card class="list-card">
+                        <div class="list-header">全站阅读量排名</div>
+                    </el-card>
+                </div>
+                <div class="list">
+                    <el-card class="list-card">
+                        <div class="list-header">推荐作者</div>
+                        <one-line-desc v-for="i in recommendList.length" v-bind:key="i"></one-line-desc>
+                    </el-card>
+                </div>
             </div>
         </div>
     </div>
@@ -24,7 +30,7 @@ export default {
     name:'AppIndex',
     data(){
         return{
-            contentList:[{a:1}],
+            contentList:[{a:1},{a:1},{a:1},{a:1},{a:1},{},{},{},{},{}],
             recommendList:[{a:1}],
         }
     },
@@ -38,26 +44,33 @@ export default {
 
 <style scoped>
 .main-container{
+    width: fit-content;
+    margin: 0 auto;
     display: flex;
     flex-direction: row;
-    width: 100%;
 }
 .content-list{
-    width: 70%;
-}
-.recommend-list{
+    width: 900px;
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 30%;
-    padding:5px;
-    background-color: black;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    flex-shrink: 1;
 }
-.card{
-    width: 80%;
-
+.side-bar{
+    margin:20px 10px;
+    width: 240px;
 }
-.recommend-header{
+.list{
+    width: 100%;
+    margin-bottom:20px;
+    flex-shrink: 0;
+}
+.list-card{
+    width: 100%;
+    border-radius: 0px;
+}
+.list-header{
     font-size: 14px;
     color:#909399;
     text-align: left;

@@ -1,19 +1,28 @@
 <template>
-    <div class="item">
-        <el-link class="title" :underline="false" >{{this.title}}</el-link>
-        <div class="content">{{this.content}}</div>
-        <div class="info">
-            <label>{{this.author}}</label>
-            <label>{{this.commentNum}}</label>
-            <label>{{this.likeNum}}</label>
+    <el-card :body-style="{ padding: '0px' }" class="card">
+        <div class="item">
+        <one-line-desc id="desc"></one-line-desc>
+        <div class="middle">
+            <div class="animation-container">
+                <el-link class="title" :underline="false" >{{this.title}}</el-link>
+                <div class="content">{{this.content}}</div>
+            </div>
         </div>
-        <div class="line"></div>
-    </div>
+        <div class="info">
+            <label class="label1">{{this.commentNum}}</label>
+            <label class="label2">{{this.likeNum}}</label>
+        </div>
+        </div>
+    </el-card>
 </template>
 
 <script>
+import OneLineDesc from './OneLineDesc'
 export default {
     name:'item-card',
+    components:{
+        OneLineDesc
+    },
     props:{
         title:{
             type:String,
@@ -21,11 +30,7 @@ export default {
         },
         content:{
             type:String,
-            default:'content here!'
-        },
-        author:{
-            type:String,
-            default:'xin'
+            default:'content here!\ntest\ntest\ntest\ntest\ntest\ntest\ntest\ntest\ntest'
         },
         commentNum:{
             type:Number,
@@ -41,39 +46,88 @@ export default {
             
         }
         
+    },
+    mounted(){
     }
 }
 </script>
 <style scoped>
+.card{
+    width: 200px;
+    max-width: 200px;
+    height: 300px;
+    margin: 15px 10px;
+    --main-color:#C0C4CC;
+    --main-hover-color:white;
+    --content-color:#909399;
+}
 .item{
+    width: 200px;
+    height: 300px;
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    justify-content: center;
-    width: 600px;
-    padding: 10px;
-    margin: 20PX auto;
+    align-items: center;
+    justify-content: flex-start;
+    background:url("~@/assets/cbg3.jpeg");
+    background-size: cover;
+    background-position: center;
+}
+#desc{
+    width:90%;
+    margin-top:10px;
+    --name-color:var( --main-color);
+    --name-hover-color:var( --main-hover-color);
+}
+.middle{
+    height: 80%;
+    width: 100%;
+    overflow: hidden;
+}
+.animation-container{
+    width: 100%;
+    height: 100%;
+    transform: translateY(88px);
+    transition: transform 3s;
+    transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
+}
+.animation-container:hover{
+    transform: translateY(10%);
+
 }
 .title{
     font-size: 18px;
     font-weight: bold;
+    color: var(--main-color);
 }
 .title:hover{
-    color: black;
+    color: var(--main-hover-color);
 }
 .content{
+    height: 40%;
+    line-height: 16px;
     font-size: 14px;
-    color:#909399;
+    color:var( --content-color);
+    text-overflow: ellipsis;
+    white-space: pre-line;
+
+
 }
 .info{
-    margin-top: 10px;
+    width: 100%;
+    height: 30px;
     font-size: 13px;
-    color: #C0C4CC;
+    color: var( --main-color);
+    text-align: right;
+    position: relative;
 }
-.line{
-    margin-top: 10px;
-    height: 1px;
-    width:100%;
-    background-color: #dccfe6;
+.label2{
+    position:absolute;
+    bottom:10px;
+    right: 10px;
+}
+.label1{
+    position:absolute;
+    bottom:10px;
+    right:25px;
 }
 </style>
