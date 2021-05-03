@@ -50,9 +50,6 @@ export default {
         background:url("~@/assets/nbg2.png") repeat;
         background-size: contain;
     }
-    .el-menu-item.is-active{
-        background: transparent;
-    }
     .title{
         display: inline;
         height: fit-content;

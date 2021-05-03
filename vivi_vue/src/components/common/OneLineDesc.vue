@@ -1,6 +1,8 @@
 <template>
-    <div class="container">
-        <el-avatar :src="url" :size="small" style="margin-end:10px"></el-avatar>
+    <div :style="styleVar" class="one-line-desc-container">
+        <div class="avatar-container">
+            <el-avatar :src="url"  class="avatar"></el-avatar>
+        </div>
         <div class="desc">
             <el-link class="name" :underline="false">{{name}}</el-link>
             <label class="intro">{{introduction}}</label>
@@ -17,35 +19,78 @@ export default {
             name:'hh',
             introduction:'hh',
         }
+    },
+    props:{
+        size:{
+            type:String,
+            default:'small',
+        },
+        font_size:{
+            type:Number,
+            default:16,
+        },
+        avatar_size:{
+            type:Number,
+            default:36,
+        },
+        intro_font_size:{
+            type:Number,
+            default:14,
+        }
+    },
+    computed:{
+        styleVar(){
+            console.log(this.size);
+            let fontSize = this.font_size;
+            let introFontSize = this.intro_font_size;
+            let avatarSize = this.avatar_size;
+            if (this.size == 'big'){
+                fontSize = 20;
+                introFontSize = 16;
+                avatarSize = 60;
+            }
+            return{
+                '--name-font-size': fontSize + 'px',
+                '--avatar-size': avatarSize + 'px',
+                '--intro-font-size': introFontSize +'px',
+            }
+        }
     }
+
 }
 </script>
 
 <style scoped>
 /*字体颜色*/
-.container{
+.one-line-desc-container{
+    width: fit-content;
+    min-width: 150px;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
     --name-color:#606266;
     --intro-color:#909399;
     --name-hover-color:black;
 }
+.avatar-container{
+    height:var(--avatar-size);
+}
+.avatar{
+    height: var(--avatar-size);
+    width:var(--avatar-size) ;
+    line-height: var(--avatar-size);
+}
 .name{
-    font-size: 16px;
+    font-size: var(--name-font-size);
     color:var( --name-color);
 }
 .name:hover{
     color: var(--name-hover-color);
 }
 .intro{
-    font-size: 14px;
+    font-size: var(--intro-font-size);
     color:#909399;
-}
-.container{
-    min-width: 150px;
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    margin-top: 5px;
 }
 .desc{
     display: flex;
@@ -53,5 +98,6 @@ export default {
     justify-content: flex-start;
     align-items: flex-start;
     width: 60%;
+    margin-left: 10px;
 }
 </style>
