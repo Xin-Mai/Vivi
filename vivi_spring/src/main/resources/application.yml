@@ -1,0 +1,12 @@
+server:
+  port: 8443
+
+spring:
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/vivi?useSSL=false&serverTimezone=Asia/Shanghai
+    username: "root"
+    password: '123'
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect

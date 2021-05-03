@@ -10,11 +10,12 @@ public class UserService {
     //自动从容器中找到一个对象
     @Autowired
     UserDAO userDAO;
-
     public boolean isExist(String username) {
+
         User user = getByName(username);
         return null!=user;
     }
+    public User getById(int id) {return userDAO.findById(id);}
 
     public User getByName(String username) {
         return userDAO.findByUsername(username);
