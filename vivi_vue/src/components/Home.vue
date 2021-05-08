@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="body">
         <nav-menu class="menu"></nav-menu>
         <router-view class="router-view"/>
     </div>
@@ -15,7 +15,9 @@
 </script>
 
 <style scoped>
-*{
+.body{
+    min-height: 100%;
+    height: fit-content;
     background: #E4E7ED;
 }
 .menu{
@@ -25,6 +27,8 @@
 .router-view{
     padding:0px 10px 0px 10px;
     width: 92%;
+    position: relative;
+    min-height: calc(100% - 57px);
     margin: 0 auto;
     background:white;
 }

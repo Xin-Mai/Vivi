@@ -12,7 +12,7 @@
         </div>
         <div class="right">
             <my-avatar style="margin-inline-start: 20px;margin-inline-end: 20px;"></my-avatar>
-            <el-menu-item style="float:riight;font-weight:bolder;font-size:large">发表</el-menu-item>
+            <el-menu-item :index="publishIndex" style="float:right;font-weight:bolder;font-size:large">发表</el-menu-item>
         </div>
 
     </el-menu>
@@ -47,7 +47,7 @@ export default {
         align-items: center;
         flex-direction:row;
         z-index: 100;
-        background:url("~@/assets/nbg2.png") repeat;
+        background:url("~@/assets/img/nbg2.png") repeat;
         background-size: contain;
     }
     .title{

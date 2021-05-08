@@ -9,9 +9,9 @@
     </div>
 </template>
 <script>
-import img1 from '@/assets/bg.jpg'
-import img2 from '@/assets/bg3.jpg'
-import img3 from '@/assets/bg4.jpg'
+import img1 from '@/assets/img/bg.jpg'
+import img2 from '@/assets/img/bg3.jpg'
+import img3 from '@/assets/img/bg4.jpg'
 export default {
     name:'show-card',
     data(){
@@ -54,7 +54,5 @@ export default {
 .card{
     width: 400px;
 }
-el-img{
-    
-}
+
 </style>

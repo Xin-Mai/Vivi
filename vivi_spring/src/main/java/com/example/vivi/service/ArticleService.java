@@ -18,6 +18,9 @@ public class ArticleService {
     @Autowired
     UserDAO userDAO;
 
+    public Article getById(int id){
+        return articleDAO.findById(id);
+    }
     //获取首页的文章
     public List<Article> list() {
         Sort sort = Sort.by(Sort.Direction.DESC,"id");
@@ -38,9 +41,23 @@ public class ArticleService {
         User author = userDAO.findById(id);
         return articleDAO.findAllByAuthor(author);
     }
-
+    //获取某个作者总阅读量
+    public int getTotalReadByAuthor(int id){
+        List<Article> articles = getAllArticlesByAuthor(id);
+        int read = 0;
+        for (int i=0;i<articles.size();i++){ read+=articles.get(i).getReadNum(); }
+        return read;
+    }
+    //获取作者总赞数
+    public int getTotalLikeByAuthor(int id){
+        List<Article> articles = getAllArticlesByAuthor(id);
+        int like = 0;
+        for (int i=0;i<articles.size();i++){ like+=articles.get(i).getLikeNum(); }
+        return like;
+    }
     //根据标题搜索文章
     public List<Article> getArticlesByTitle(String keyword){
         return articleDAO.findAllByTitleLike(keyword);
     }
+
 }

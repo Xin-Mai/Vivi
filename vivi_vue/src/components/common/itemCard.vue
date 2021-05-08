@@ -1,15 +1,15 @@
 <template>
     <el-card :body-style="{ padding: '0px' }" class="card">
         <div class="item">
-        <one-line-desc id="desc"></one-line-desc>
+        <one-line-desc id="desc" :descContent="this.author"></one-line-desc>
         <div class="middle">
             <div class="animation-container">
-                <el-link class="title" :underline="false" >{{this.title}}</el-link>
+                <el-link class="title" :underline="false" :href="'/article/'+id" >{{this.title}}</el-link>
                 <div class="content">{{this.content}}</div>
             </div>
         </div>
         <div class="info">
-            <label class="label1">{{this.commentNum}}</label>
+            <label class="label1">{{this.readNum}}</label>
             <label class="label2">{{this.likeNum}}</label>
         </div>
         </div>
@@ -24,6 +24,10 @@ export default {
         OneLineDesc
     },
     props:{
+        id:{
+            type: Number,
+            default:1,
+        },
         title:{
             type:String,
             default:'Hello,world'
@@ -32,13 +36,23 @@ export default {
             type:String,
             default:'content here!\ntest\ntest\ntest\ntest\ntest\ntest\ntest\ntest\ntest'
         },
-        commentNum:{
+        readNum:{
             type:Number,
             default:0
         },
         likeNum:{
             type:Number,
             default:0
+        },
+        author:{
+            type: Object,
+            default:function(){
+                return{
+                    name:'',
+                    intro:'',
+                    avatar: "https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png",
+                }
+            }
         }
     },
     data(){
@@ -68,7 +82,7 @@ export default {
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    background:url("~@/assets/cbg3.jpeg");
+    background:url("~@/assets/img/cbg3.jpeg");
     background-size: cover;
     background-position: center;
 }
@@ -98,6 +112,7 @@ export default {
     font-size: 18px;
     font-weight: bold;
     color: var(--main-color);
+    margin-bottom: 5px;
 }
 .title:hover{
     color: var(--main-hover-color);

@@ -4,8 +4,8 @@
             <el-avatar :src="url"  class="avatar"></el-avatar>
         </div>
         <div class="desc">
-            <el-link class="name" :underline="false">{{name}}</el-link>
-            <label class="intro">{{introduction}}</label>
+            <el-link class="name" :underline="false">{{this.descContent.username}}</el-link>
+            <label class="intro">{{intro}}</label>
         </div>
     </div>
 </template>
@@ -15,12 +15,22 @@ export default {
     name:'one-line-desc',
     data(){
         return{
-            url:"https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png",
-            name:'hh',
-            introduction:'hh',
+            defaultUrl: "https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png",
+            defaultIntro: "没有简介",
         }
     },
     props:{
+        descContent:{
+            type: Object,
+            default:function(){
+                return{
+                    id:'',
+                    username: 'hh',
+                    intro: this.defaultIntro,
+                    url: this.defaultUrl,
+                }
+            }
+        },
         size:{
             type:String,
             default:'small',
@@ -39,8 +49,21 @@ export default {
         }
     },
     computed:{
+        url(){
+            if (!this.descContent.url){
+                return this.defaultUrl;
+            }
+            return this.descContent.url;
+
+        },
+        intro(){
+            if(!this.descContent.intro){
+                return this.defaultIntro;
+            }
+            return this.descContent.intro;
+        },
         styleVar(){
-            console.log(this.size);
+            //console.log(this.size);
             let fontSize = this.font_size;
             let introFontSize = this.intro_font_size;
             let avatarSize = this.avatar_size;
@@ -55,6 +78,9 @@ export default {
                 '--intro-font-size': introFontSize +'px',
             }
         }
+    },
+    created:function(){
+        //console.log(this.descContent);
     }
 
 }
@@ -91,6 +117,8 @@ export default {
 .intro{
     font-size: var(--intro-font-size);
     color:#909399;
+    overflow: hidden;
+    height: calc(var(--intro-font-size) + 4px);
 }
 .desc{
     display: flex;
@@ -98,6 +126,7 @@ export default {
     justify-content: flex-start;
     align-items: flex-start;
     width: 60%;
+    height:var(--avatar-size);
     margin-left: 10px;
 }
 </style>

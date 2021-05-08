@@ -11,7 +11,6 @@ public class UserService {
     @Autowired
     UserDAO userDAO;
     public boolean isExist(String username) {
-
         User user = getByName(username);
         return null!=user;
     }
@@ -28,4 +27,8 @@ public class UserService {
     public void add(User user) {
         userDAO.save(user);
     }
+
+    public void login(User user) {userDAO.updateStateById(true,user.getId());}
+
+    public void logout(User user) {userDAO.updateStateById(false,user.getId());}
 }

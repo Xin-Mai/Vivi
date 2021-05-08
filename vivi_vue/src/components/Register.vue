@@ -54,7 +54,7 @@ export default {
                 ],
                 password:[
                     {required:true,message:'密码不能为空',trigger:'blur'},
-                    {max:20,message:'密码长度不能超过16个字符',trigger:'change'},
+                    {min:8,max:16,message:'密码长度不能超过16个字符',trigger:'change'},
                 ],
                 check:[
                     {validator:passCheck,trigger:'blur'},
@@ -84,7 +84,7 @@ export default {
 .background{
     width: 100%;
     height: 100%;
-    background:url("../assets/rbg.jpg") no-repeat;
+    background:url("../assets/img/rbg.jpg") no-repeat;
     background-size: cover;
     position: fixed;
     display: flex;
