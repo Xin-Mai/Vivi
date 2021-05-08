@@ -38,7 +38,8 @@
           password:this.loginForm.password
         })
         .then(successResponse=>{
-          if(successResponse.data.code==200){
+          if(successResponse && successResponse.status==200){
+            this.loginForm.id = successResponse.data.intData.id;
             _this.$store.commit('login',this.loginForm)
             var path=_this.$route.query.redirect
             this.$router.replace({path: path === '/' || path === undefined ? '/index' : path})
@@ -57,7 +58,7 @@
 
 <style scoped>
   .background{
-    background:url("../assets/bg2.jpg") no-repeat;
+    background:url("../assets/img/bg2.jpg") no-repeat;
     background-position: center;
     height: 100%;
     width: 100%;

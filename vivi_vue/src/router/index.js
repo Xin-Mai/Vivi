@@ -6,6 +6,8 @@ import Login from '@/components/Login'
 import Home from '@/components/Home.vue'
 import UserCenter from '@/components/home/UserCenter'
 import Register from '@/components/Register'
+import Publish from '@/components/home/Publish'
+import Article from '@/components/home/Article'
 
 Vue.use(Router)
 
@@ -23,7 +25,6 @@ export default new Router({
           path:'/index',
           name:'AppIndex',
           component:AppIndex,
-          meta:{requireAuth: true}
         },
         {
           path:'/follow',
@@ -32,17 +33,29 @@ export default new Router({
           meta:{requireAuth:true}
         },
         {
-          path:'/usercenter',
+          path:'/usercenter/:id',
           name:'UserCenter',
           component:UserCenter,
           meta:{requireAuth:true}
+        },
+        {
+          path:'/publish',
+          name:'Publish',
+          component:Publish,
+          meta:{requireAuth:true}
+        },
+        {
+          path:'/article/:id',
+          name:'Article',
+          component:Article
         }
       ]
     },
     {
       path: '/login',
       name: 'Login',
-      component: Login
+      component: Login,
+      meta:{requireAuth: true}
     },
     {
       path:'/register',

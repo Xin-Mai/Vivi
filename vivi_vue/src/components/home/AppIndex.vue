@@ -39,6 +39,9 @@ export default {
         ItemCard,
         OneLineDesc
         },
+    created:function(){
+        
+    }
 }
 </script>
 

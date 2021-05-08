@@ -6,13 +6,22 @@ Vue.use(Vuex)
 export default new Vuex.Store({
         state:{
             user:{
-                username:window.localStorage.getItem('user'||'[]')==null?'':JSON.parse(window.localStorage.getItem('user'||'[]')).username
+                username:window.localStorage.getItem('user'||'[]')==null?'':JSON.parse(window.localStorage.getItem('user'||'[]')).username,
+                id:window.localStorage.getItem('user'||'[]')==null?'':JSON.parse(window.localStorage.getItem('user'||'[]')).id,
             }
         },
         mutations:{
             login(state,user){
                 state.user=user
                 window.localStorage.setItem('user',JSON.stringify(user))
+            },
+            logout(state){
+                state.user = {
+                    username: '',
+                    id: '',
+                    password:''
+                };
+                window.localStorage.removeItem('user')
             }
         }  
 })

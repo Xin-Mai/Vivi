@@ -4,8 +4,11 @@
                 <div class="avatar_container" >
                     <one-line-desc :size="'big'"></one-line-desc>
                 </div>
-                <el-button round  type="primary" class="button">关注</el-button>
-                <el-button round class="button">发私信</el-button>
+                <el-button round  type="primary" class="button" icon="el-icon-plus" 
+                :disabled="passagerId==user.id?true:false"
+                v-on:click="followChange"
+                >关注</el-button>
+                <el-button round class="button" icon="el-icon-message">私信</el-button>
                 <div class="info">
                 <ul>
                     <li v-for="i in this.block_name.length" :key=i class="meta_block">
@@ -19,7 +22,7 @@
             <el-tabs v-model="activeName" @tab-click="handleClick" style="float:left;width:80%">
                 <el-tab-pane label="文章" :lazy="is_lazy">
                     <div class="pane">
-                        <item-card></item-card>
+                        <item-card v-for = "i in articles.length" v-bind:key=i v-bind="articles[i-1]"></item-card>
                     </div>
                 </el-tab-pane>
                 <el-tab-pane label="动态" :lazy="is_lazy">
@@ -49,7 +52,7 @@
 <script>
 import ItemCard from '../common/itemCard.vue';
 import OneLineDesc from '../common/OneLineDesc.vue';
-
+import followAndMessage from '@/assets/utils/followAndMessage.js'
 export default {
   components: { OneLineDesc, ItemCard },
     name:'UserCenter',
@@ -70,18 +73,57 @@ export default {
                 0,
                 0,
                 0,
-            ]
+            ],
+            articles:[],
+            user:{
+                id:'',
+                username:'',
+                intro:'',
+                url:'',
+            },
+            passagerId: this.$store.state.user.id,
         }
     },
     methods:{
         handleClick(tab, event){
             console.log(tab,event);
+        },
+        followChange(){
+            followAndMessage.followChange(this.user.id,this.passagerId);
         }
+    },
+    created:function(){
+        //加载头部信息
+        this.$axios.get('/usercenter/'+this.$store.state.user.id)
+        .then(successResponse=>{
+            if (successResponse && successResponse.status == 200){
+                this.nums = successResponse.data;
+            }
+        })
+        .catch(failResponse=>{
+
+        })
+        this.$axios.get('/'+this.$store.state.user.id+'/articles')
+        .then(successResponse=>{
+            if (successResponse && successResponse.status == 200){
+                this.articles = successResponse.data;
+                //console.log(this.articles);
+            }
+        })
+        .catch(failResponse=>{
+            this.$notify.error({
+                title:'加载失败',
+                message: '请稍后再试',
+            })
+        })
     }
     
 }
 </script>
 <style>
+.body{
+    min-height: 100%;
+}
 .el-tabs__item {
   font-size: 16px !important;
   padding: 10px 0px 40px !important;

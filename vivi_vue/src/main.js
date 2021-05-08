@@ -1,9 +1,10 @@
 import Vue from 'vue'
 import App from './App'
 import router from './router'
-import ElementUI from 'element-ui'
+import ElementUI, { TabPane } from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
 import store from './store'
+import '#/icon/iconfont.css'
 
 var axios = require('axios')
 axios.defaults.baseURL = 'http://localhost:8443/api'
@@ -14,13 +15,26 @@ Vue.use(ElementUI)
 
 router.beforeEach((to, from, next) => {
   if (to.meta.requireAuth) {
+    console.log(to.path == "/login");
     if (store.state.user.username) {
-      next()
+      if (to.path == "/login"){
+        next({
+          path: 'home'
+        })
+      }
+      else{
+        next()
+      }
     } else {
-      next({
-        path: 'login',
-        query: {redirect: to.fullPath}
-      })
+      if (to.path == "/login"){
+        next()
+      }
+      else{
+        next({
+          path: 'login',
+          query: {redirect: to.fullPath}
+        })
+      }
     }
   } else {
     next()

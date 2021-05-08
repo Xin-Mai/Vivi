@@ -1,6 +1,7 @@
 package com.example.vivi.pojo;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.springframework.data.annotation.CreatedDate;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -32,6 +33,8 @@ public class Comment {
     private Article article;
 
     private String content;
+
+    @CreatedDate
     private Date publishDate;
 
     public int getId() {

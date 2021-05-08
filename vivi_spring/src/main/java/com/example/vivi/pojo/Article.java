@@ -1,6 +1,7 @@
 package com.example.vivi.pojo;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.springframework.data.annotation.CreatedDate;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -22,9 +23,11 @@ public class Article {
 
     private String title;
     private String content;
+    @CreatedDate
     private Date publishDate;
     private int likeNum;
     private int readNum;
+
 
     //外键对应的对象
     //文章作者
@@ -32,6 +35,7 @@ public class Article {
     @JoinColumn(name = "author")
     private User author;
 
+    //private int aid;
     public int getId() {
         return id;
     }
@@ -68,7 +72,7 @@ public class Article {
         return likeNum;
     }
 
-    public void setLikeNum(int likeNum) {
+    public void setLike_num(int likeNum) {
         this.likeNum = likeNum;
     }
 
@@ -80,6 +84,7 @@ public class Article {
         this.readNum = readNum;
     }
 
+
     public User getAuthor() {
         return author;
     }
@@ -87,4 +92,15 @@ public class Article {
     public void setAuthor(User author) {
         this.author = author;
     }
+
+/*
+    public int getAid() {
+        return aid;
+    }
+
+    public void setAid(int aid) {
+        this.aid = aid;
+    }
+
+ */
 }
