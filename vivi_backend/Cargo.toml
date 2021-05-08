@@ -13,6 +13,10 @@ futures = "0.3"
 lazy_static = "1.4"
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
+jwt = "0"
+hmac = "0"
+sha2 = "0"
+chrono = "0.4"
 
 [dependencies.mongodb]
 version = "2.0.0-alpha.1"

@@ -1,10 +1,48 @@
 use hyper::service::{make_service_fn, service_fn};
-use hyper::{Body, Method, Request, Response, Server, StatusCode};
+use hyper::{Body, Method, Request, Response, Server, StatusCode, HeaderMap};
+use hyper::header::HeaderValue;
 use std::convert::Infallible;
 use std::net::SocketAddr;
+use std::collections::HashMap;
+use vivi::sign::Signer;
+use vivi::ErrorMsg;
+#[macro_use] extern crate lazy_static;
 
-async fn dispatcher(req: Request<Body>) -> Result<Response<Body>, Infallible> {
+type Operation = (Method, &'static str);
+type TokenHandle = fn(Vec<u8>) -> Result<Vec<u8>,ErrorMsg>;
+type Handle = fn(Vec<u8>, String) -> Result<Vec<u8>,ErrorMsg>;
+
+lazy_static! {
+    static ref SIGNER: Signer = Signer::new();
+    static ref LOGIN_TABLE: HashMap<Operation, TokenHandle> = [
+            ((Method::GET, "/login"), vivi::user::login as TokenHandle),
+            ((Method::GET, "/reg"), vivi::user::register),
+        ].iter().cloned().collect();
+    static ref FUNCTION_TABLE: HashMap<Operation, Handle> = [
+            // ((Method::GET, "/user"), vivi::user::login as Handle),
+            // ((Method::GET, "/user"), vivi::user::register),
+        ].iter().cloned().collect();
+}
+
+fn wrap_result(msg: ErrorMsg, response: &mut Response<Body>) {
+    *response.status_mut() = msg.code;
+    *response.body_mut() = Body::from(msg.msg);
+}
+
+fn retrieve_token(headers: &HeaderMap<HeaderValue>) -> Option<String> {
+    headers.get("token").and_then(|v| {
+        v.to_str().ok()
+    }).and_then(|v| {
+        SIGNER.verify(v).ok()
+    }).and_then(|v| {
+        Some(v.0)
+    })
+}
+
+async fn entry(req: Request<Body>) -> Result<Response<Body>, Infallible> {
     let mut response = Response::new(Body::empty());
+
+    // separate request with header and body data([u8])
     let (parts, body) = req.into_parts();
     let data = match hyper::body::to_bytes(body).await {
         Ok(data) => data,
@@ -14,30 +52,33 @@ async fn dispatcher(req: Request<Body>) -> Result<Response<Body>, Infallible> {
         }
     }
     .to_vec();
-    *response.body_mut() = Body::from(
-        "Hello World!"
-    );
 
-    // *response.body_mut() = Body::from(match (&(parts.method), parts.uri.path()) {
-    //     (&Method::GET, "/channel") => match channel::channel_get_all() {
-    //         Ok(data) => data,
-    //         _ => {
-    //             *response.status_mut() = StatusCode::INTERNAL_SERVER_ERROR;
-    //             return Ok(response);
-    //         }
-    //     },
-    //     (&Method::POST, "/channel/send") => match channel::channel_send(data) {
-    //         Ok(data) => data,
-    //         _ => {
-    //             *response.status_mut() = StatusCode::BAD_REQUEST;
-    //             return Ok(response)
-    //         }
-    //     },
-    //     _ => {
-    //         *response.status_mut() = StatusCode::NOT_FOUND;
-    //         "Only support /channel && /channel/send request".as_bytes().to_vec()
-    //     }
-    // });
+    // get function map key
+    let key = &(parts.method, parts.uri.path());
+
+    // get token from header
+    // if not exist: try to process with register/login request
+    // else: try to process with other request
+    match retrieve_token(&parts.headers) {
+        Some(token) => {
+            if let Some(func) = FUNCTION_TABLE.get(key) {
+                if let Err(msg) = func(data, token) {
+                    wrap_result(msg, &mut response);
+                }
+            } else {
+                *response.status_mut() = StatusCode::BAD_REQUEST;
+            }
+        },
+        None => {
+            if let Some(func) = LOGIN_TABLE.get(key) {
+                if let Err(msg) = func(data) {
+                    wrap_result(msg, &mut response);
+                }
+            } else {
+                *response.status_mut() = StatusCode::BAD_REQUEST
+            }
+        }
+    }
     Ok(response)
 }
 
@@ -49,9 +90,10 @@ async fn shutdown_signal() {
 
 #[tokio::main]
 async fn main() {
-    let addr = SocketAddr::from(([1, 116, 248, 164], 12306));
+    let addr = SocketAddr::from(([127, 0, 0, 1], 12306));
+    // let addr = SocketAddr::from(([10, 0, 12, 6], 12306));
 
-    let make_svc = make_service_fn(|_conn| async { Ok::<_, Infallible>(service_fn(dispatcher)) });
+    let make_svc = make_service_fn(|_conn| async { Ok::<_, Infallible>(service_fn(entry)) });
 
     let server = Server::bind(&addr).serve(make_svc);
 
