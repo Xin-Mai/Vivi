@@ -7,6 +7,7 @@ use mongodb::bson;
 pub struct User {
     #[serde(rename = "_id")]
     id: bson::oid::ObjectId,
+    email: String,
     username: String,
     password: String,
     intro: String,

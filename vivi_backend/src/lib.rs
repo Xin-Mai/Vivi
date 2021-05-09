@@ -5,6 +5,10 @@ pub mod db;
 pub mod sign;
 pub mod user;
 
+pub fn hello(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
+    Ok("Hello world".as_bytes().to_vec())
+}
+
 use hyper::StatusCode;
 pub struct ErrorMsg {
     pub code: StatusCode,
