@@ -16,8 +16,8 @@ type Handle = fn(Vec<u8>, String) -> Result<Vec<u8>, ErrorMsg>;
 lazy_static! {
     static ref SIGNER: Signer = Signer::new();
     static ref LOGIN_TABLE: HashMap<Operation, TokenHandle> = [
-            ((Method::GET, "/login"), vivi::user::login as TokenHandle),
-            ((Method::GET, "/reg"), vivi::user::register),
+            ((Method::POST, "/login"), vivi::user::login as TokenHandle),
+            ((Method::POST, "/reg"), vivi::user::register),
         ].iter().cloned().collect();
     static ref FUNCTION_TABLE: HashMap<Operation, Handle> = [
             ((Method::GET, "/hello"), vivi::user::hello_world as Handle),
@@ -89,8 +89,8 @@ async fn shutdown_signal() {
 
 #[tokio::main]
 async fn main() {
-    let addr = SocketAddr::from(([127, 0, 0, 1], 12306));
-    // let addr = SocketAddr::from(([10, 0, 12, 6], 12306));
+    // let addr = SocketAddr::from(([127, 0, 0, 1], 12306));
+    let addr = SocketAddr::from(([10, 0, 12, 6], 12306));
 
     let make_svc = make_service_fn(|_conn| async { Ok::<_, Infallible>(service_fn(entry)) });
 
