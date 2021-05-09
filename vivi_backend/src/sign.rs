@@ -1,6 +1,6 @@
 use chrono::prelude::Utc;
 use hmac::{Hmac, NewMac};
-use jwt::{SignWithKey, VerifyWithKey, Error};
+use jwt::{Error, SignWithKey, VerifyWithKey};
 use sha2::Sha256;
 use std::collections::BTreeMap;
 
@@ -25,8 +25,8 @@ impl Signer {
         claims.sign_with_key(&self.key).unwrap()
     }
 
-    pub fn verify(&self, token: &str) -> Result<(String, String),Error> {
-        let claims: BTreeMap<String,String> = token.verify_with_key(&self.key)?;
+    pub fn verify(&self, token: &str) -> Result<(String, String), Error> {
+        let claims: BTreeMap<String, String> = token.verify_with_key(&self.key)?;
         Ok((claims["token"].clone(), claims["time"].clone()))
     }
 }

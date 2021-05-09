@@ -1,16 +1,17 @@
-use hyper::service::{make_service_fn, service_fn};
-use hyper::{Body, Method, Request, Response, Server, StatusCode, HeaderMap};
 use hyper::header::HeaderValue;
+use hyper::service::{make_service_fn, service_fn};
+use hyper::{Body, HeaderMap, Method, Request, Response, Server, StatusCode};
+use std::collections::HashMap;
 use std::convert::Infallible;
 use std::net::SocketAddr;
-use std::collections::HashMap;
 use vivi::sign::Signer;
 use vivi::ErrorMsg;
-#[macro_use] extern crate lazy_static;
+#[macro_use]
+extern crate lazy_static;
 
 type Operation = (Method, &'static str);
-type TokenHandle = fn(Vec<u8>) -> Result<Vec<u8>,ErrorMsg>;
-type Handle = fn(Vec<u8>, String) -> Result<Vec<u8>,ErrorMsg>;
+type TokenHandle = fn(Vec<u8>) -> Result<Vec<u8>, ErrorMsg>;
+type Handle = fn(Vec<u8>, String) -> Result<Vec<u8>, ErrorMsg>;
 
 lazy_static! {
     static ref SIGNER: Signer = Signer::new();
@@ -19,24 +20,28 @@ lazy_static! {
             ((Method::GET, "/reg"), vivi::user::register),
         ].iter().cloned().collect();
     static ref FUNCTION_TABLE: HashMap<Operation, Handle> = [
+            ((Method::GET, "/hello"), vivi::user::hello_world as Handle),
             // ((Method::GET, "/user"), vivi::user::login as Handle),
             // ((Method::GET, "/user"), vivi::user::register),
         ].iter().cloned().collect();
 }
 
-fn wrap_result(msg: ErrorMsg, response: &mut Response<Body>) {
-    *response.status_mut() = msg.code;
-    *response.body_mut() = Body::from(msg.msg);
+fn process_result(result: Result<Vec<u8>, ErrorMsg>, rsp: &mut Response<Body>) {
+    match result {
+        Ok(data) => *rsp.body_mut() = Body::from(data),
+        Err(msg) => {
+            *rsp.status_mut() = msg.code;
+            *rsp.body_mut() = Body::from(msg.msg);
+        }
+    }
 }
 
 fn retrieve_token(headers: &HeaderMap<HeaderValue>) -> Option<String> {
-    headers.get("token").and_then(|v| {
-        v.to_str().ok()
-    }).and_then(|v| {
-        SIGNER.verify(v).ok()
-    }).and_then(|v| {
-        Some(v.0)
-    })
+    headers
+        .get("token")
+        .and_then(|v| v.to_str().ok())
+        .and_then(|v| SIGNER.verify(v).ok())
+        .and_then(|v| Some(v.0))
 }
 
 async fn entry(req: Request<Body>) -> Result<Response<Body>, Infallible> {
@@ -61,21 +66,15 @@ async fn entry(req: Request<Body>) -> Result<Response<Body>, Infallible> {
     // else: try to process with other request
     match retrieve_token(&parts.headers) {
         Some(token) => {
-            if let Some(func) = FUNCTION_TABLE.get(key) {
-                if let Err(msg) = func(data, token) {
-                    wrap_result(msg, &mut response);
-                }
-            } else {
-                *response.status_mut() = StatusCode::BAD_REQUEST;
+            match FUNCTION_TABLE.get(key) {
+                Some(func) => process_result(func(data, token), &mut response),
+                None => *response.status_mut() = StatusCode::BAD_REQUEST,
             }
-        },
+        }
         None => {
-            if let Some(func) = LOGIN_TABLE.get(key) {
-                if let Err(msg) = func(data) {
-                    wrap_result(msg, &mut response);
-                }
-            } else {
-                *response.status_mut() = StatusCode::BAD_REQUEST
+            match LOGIN_TABLE.get(key) {
+                Some(func) => process_result(func(data), &mut response),
+                None => *response.status_mut() = StatusCode::BAD_REQUEST,
             }
         }
     }
