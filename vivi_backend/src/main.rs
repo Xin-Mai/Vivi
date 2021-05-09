@@ -4,8 +4,8 @@ use hyper::{Body, HeaderMap, Method, Request, Response, Server, StatusCode};
 use std::collections::HashMap;
 use std::convert::Infallible;
 use std::net::SocketAddr;
-use vivi::sign::Signer;
-use vivi::ErrorMsg;
+use vivi::tool::sign::Signer;
+use vivi::tool::error::ErrorMsg;
 #[macro_use]
 extern crate lazy_static;
 
@@ -16,12 +16,12 @@ type Handle = fn(Vec<u8>, String) -> Result<Vec<u8>, ErrorMsg>;
 lazy_static! {
     static ref SIGNER: Signer = Signer::new();
     static ref LOGIN_TABLE: HashMap<Operation, TokenHandle> = [
-            ((Method::POST, "/login"), vivi::user::login as TokenHandle),
-            ((Method::POST, "/reg"), vivi::user::register),
-            ((Method::GET, "/"), vivi::hello),
+            ((Method::POST, "/login"), vivi::model::user::login as TokenHandle),
+            ((Method::POST, "/reg"), vivi::model::user::register),
+            ((Method::GET, "/"), vivi::tool::test::hello),
         ].iter().cloned().collect();
     static ref FUNCTION_TABLE: HashMap<Operation, Handle> = [
-            ((Method::GET, "/hello"), vivi::user::hello_world as Handle),
+            ((Method::GET, "/hello"), vivi::model::user::hello_world as Handle),
             // ((Method::GET, "/user"), vivi::user::login as Handle),
             // ((Method::GET, "/user"), vivi::user::register),
         ].iter().cloned().collect();

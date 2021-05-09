@@ -1,4 +1,4 @@
-use crate::user::User;
+use super::user::User;
 use mongodb::{
     bson::{doc, Bson, Document},
     error::Error,

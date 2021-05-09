@@ -1,5 +1,5 @@
-use crate::db;
-use crate::ErrorMsg;
+use super::db;
+use crate::tool::error::ErrorMsg;
 use serde::{Deserialize, Serialize};
 use mongodb::bson;
 
