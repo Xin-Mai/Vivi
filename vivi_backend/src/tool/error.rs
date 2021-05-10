@@ -52,3 +52,13 @@ impl std::convert::From<mongodb::bson::oid::Error> for ErrorMsg {
         }
     }
 }
+
+impl std::convert::From<std::io::Error> for ErrorMsg {
+    fn from(error: std::io::Error) -> ErrorMsg {
+        println!("Error {:?} occur in an io operation", error);
+        ErrorMsg {
+            code: StatusCode::INTERNAL_SERVER_ERROR,
+            msg: "IO error!",
+        }
+    }
+}

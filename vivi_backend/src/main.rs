@@ -22,6 +22,8 @@ lazy_static! {
         ].iter().cloned().collect();
     static ref FUNCTION_TABLE: HashMap<Operation, Handle> = [
             ((Method::GET, "/hello"), vivi::model::user::hello_world as Handle),
+            ((Method::POST, "/user/update/info"), vivi::model::user::update_user_info),
+            ((Method::POST, "/user/update/avatar"), vivi::model::user::update_user_avatar),
             // ((Method::GET, "/user"), vivi::user::login as Handle),
             // ((Method::GET, "/user"), vivi::user::register),
         ].iter().cloned().collect();

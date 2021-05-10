@@ -23,7 +23,6 @@ pub struct User {
     username: String,
     password: String,
     intro: Option<String>,
-    avatar: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -45,6 +44,13 @@ struct LoginRsp {
     id: String,
 }
 
+#[derive(Deserialize)]
+struct UserInfoUpdateReq {
+    username: String,
+    password: String,
+    intro: String,
+}
+
 impl User {
     fn from_reg(req: RegisterReq) -> Self {
         User {
@@ -53,18 +59,22 @@ impl User {
             password: req.password,
             email: req.email,
             intro: None,
-            avatar: None,
         }
+    }
+    fn merge_update_info(&mut self, req: UserInfoUpdateReq) {
+        self.username = req.username;
+        self.password = req.password;
+        self.intro = Some(req.intro);
     }
 }
 
 impl RegisterReq {
     fn valid(&self) -> bool {
-        let lenU = self.username.len();
-        let lenP = self.password.len();
-        if lenU < 2 || lenU > 10 {
+        let len_user = self.username.len();
+        let len_pwd = self.password.len();
+        if len_user < 2 || len_user > 10 {
             false
-        } else if lenP < 8 || lenP > 16 {
+        } else if len_pwd < 8 || len_pwd > 16 {
             false
         } else {
             true
@@ -75,6 +85,8 @@ impl RegisterReq {
 lazy_static! {
     static ref USER_TABLE: Collection<User> = db::user_collection();
 }
+
+const MAX_AVATAR_LEN: usize = 1_000_000;
 
 pub fn login(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
     let user_req: LoginReq = serde_json::from_slice(&data)?;
@@ -115,6 +127,35 @@ pub fn register(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
     };
     USER_TABLE.insert_one(user, None)?;
     Ok(basic::rsp_ok(&rsp)?)
+}
+
+pub fn update_user_info(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
+    let req: UserInfoUpdateReq = serde_json::from_slice(&data)?;
+    let oid = &oid::ObjectId::with_string(&id)?;
+    // check for non-exist
+    match USER_TABLE.find_one(doc! {"_id": &oid}, None)? {
+        Some(mut user) => {
+            user.merge_update_info(req);
+            USER_TABLE.insert_one(user, None)?;
+            Ok(vec![])
+        }
+        None => Err(ErrorMsg {
+            code: StatusCode::BAD_REQUEST,
+            msg: "Update a non-exist user",
+        }),
+    }
+}
+
+pub fn update_user_avatar(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
+    if data.len() > MAX_AVATAR_LEN {
+        return Err(ErrorMsg {
+            code: StatusCode::BAD_REQUEST,
+            msg: "Avatar too big",
+        });
+    }
+    let path = format!("~/image/{}", id);
+    std::fs::write(path, data)?;
+    Ok(vec![])
 }
 
 pub fn hello_world(_: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
