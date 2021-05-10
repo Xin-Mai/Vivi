@@ -83,16 +83,13 @@ pub fn login(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
 
 pub fn register(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
     let reg_req: RegisterReq = serde_json::from_slice(&data)?;
-    let insert_rsp = USER_TABLE.insert_one(User::from_reg(reg_req), None)?;
-    let id = match insert_rsp.inserted_id.as_object_id() {
-        Some(oid) => oid.to_hex(),
-        None => return Err(ErrorMsg::unknown()),
-    };
-    let token = sign::sign(&id);
+    let user = User::from_reg(reg_req);
+    let id = user.id.clone();
     let rsp = LoginRsp {
-        token: token,
+        token: sign::sign(&id),
         id: id,
     };
+    USER_TABLE.insert_one(user, None)?;
     Ok(serde_json::to_vec(&rsp)?)
 }
 
