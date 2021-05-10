@@ -8,6 +8,7 @@ use mongodb::{
     bson::serde_helpers::serialize_hex_string_as_object_id,
     bson::{doc, oid},
     sync::Collection,
+    options::UpdateModifications,
 };
 use serde::{Deserialize, Serialize};
 
@@ -82,6 +83,16 @@ impl RegisterReq {
     }
 }
 
+impl Into<UpdateModifications> for UserInfoUpdateReq {
+    fn into(self) -> UpdateModifications {
+        doc!{
+            "username": self.username,
+            "password": self.password,
+            "intro": self.intro,
+        }
+    }
+}
+
 lazy_static! {
     static ref USER_TABLE: Collection<User> = db::user_collection();
 }
@@ -132,17 +143,11 @@ pub fn register(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
 pub fn update_user_info(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
     let req: UserInfoUpdateReq = serde_json::from_slice(&data)?;
     let oid = &oid::ObjectId::with_string(&id)?;
-    // check for non-exist
-    match USER_TABLE.find_one(doc! {"_id": &oid}, None)? {
-        Some(mut user) => {
-            user.merge_update_info(req);
-            USER_TABLE.insert_one(user, None)?;
-            Ok(vec![])
-        }
-        None => Err(ErrorMsg {
-            code: StatusCode::BAD_REQUEST,
-            msg: "Update a non-exist user",
-        }),
+    let res = USER_TABLE.update_one(doc! {"_id": &oid}, req, None)?;
+    if res.modified_count == 1 {
+        Ok(vec![])
+    } else {
+        Err(ErrorMsg::unknown())
     }
 }
 
