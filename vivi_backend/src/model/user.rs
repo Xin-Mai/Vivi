@@ -3,6 +3,7 @@ use super::basic::deserialize_object_id_to_string;
 use super::db;
 use crate::tool::error::ErrorMsg;
 use crate::tool::sign;
+use hyper::StatusCode;
 use mongodb::{
     bson::serde_helpers::serialize_hex_string_as_object_id,
     bson::{doc, oid},
@@ -23,13 +24,6 @@ pub struct User {
     password: String,
     intro: Option<String>,
     avatar: Option<String>,
-}
-
-#[derive(Debug)]
-pub enum UserErr {
-    NAME,
-    EMALI,
-    PASSWORD,
 }
 
 #[derive(Deserialize)]
@@ -64,6 +58,20 @@ impl User {
     }
 }
 
+impl RegisterReq {
+    fn valid(&self) -> bool {
+        let lenU = self.username.len();
+        let lenP = self.password.len();
+        if lenU < 2 || lenU > 10 {
+            false
+        } else if lenP < 8 || lenP > 16 {
+            false
+        } else {
+            true
+        }
+    }
+}
+
 lazy_static! {
     static ref USER_TABLE: Collection<User> = db::user_collection();
 }
@@ -88,6 +96,17 @@ pub fn login(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
 
 pub fn register(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
     let reg_req: RegisterReq = serde_json::from_slice(&data)?;
+    // ensure data length valid
+    if !reg_req.valid() {
+        return Err(ErrorMsg {
+            code: StatusCode::BAD_REQUEST,
+            msg: "Register data not valid",
+        });
+    }
+    // check duplicate username
+    if let Some(_) = USER_TABLE.find_one(doc! {"username": &reg_req.username}, None)? {
+        return Ok(basic::rsp_err("Duplicate username")?);
+    }
     let user = User::from_reg(reg_req);
     let id = user.id.clone();
     let rsp = LoginRsp {
