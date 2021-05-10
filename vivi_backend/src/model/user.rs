@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Debug)]
 pub struct User {
     #[serde(deserialize_with = "deserialize_object_id_to_string", rename = "_id")]
-    id: Option<String>,
+    id: String,
     email: String,
     username: String,
     password: String,
@@ -49,7 +49,7 @@ struct LoginRsp {
 impl User {
     fn from_reg(req: RegisterReq) -> Self {
         User {
-            id: None,
+            id: oid::ObjectId::new().to_hex(),
             username: req.username,
             password: req.password,
             email: req.email,
@@ -73,10 +73,7 @@ pub fn login(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
         .map_or_else(
             || basic::rsp_err("User not found"),
             |user| {
-                let id = match user.id {
-                    Some(id) => id,
-                    None => return basic::rsp_err("User don't have id!")
-                };
+                let id = user.id;
                 let tkn = sign::sign(&id);
                 let rsp = LoginRsp { token: tkn, id: id };
                 basic::rsp_ok(rsp)

@@ -22,10 +22,10 @@ pub fn rsp_err(msg: &'static str) -> Result<Vec<u8>, ErrorMsg> {
     Ok(serde_json::to_vec(&rsp)?)
 }
 
-pub fn deserialize_object_id_to_string<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
+pub fn deserialize_object_id_to_string<'de, D>(deserializer: D) -> Result<String, D::Error>
 where
     D: Deserializer<'de>,
 {
     let id = oid::ObjectId::deserialize(deserializer)?;
-    Ok(Some(id.to_hex()))
+    Ok(id.to_hex())
 }
