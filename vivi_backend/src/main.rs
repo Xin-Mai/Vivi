@@ -1,4 +1,4 @@
-use hyper::header::HeaderValue;
+use hyper::header::{HeaderValue, Headers, AccessControlAllowOrigin};
 use hyper::service::{make_service_fn, service_fn};
 use hyper::{Body, HeaderMap, Method, Request, Response, Server, StatusCode};
 use std::collections::HashMap;
@@ -45,7 +45,12 @@ fn retrieve_id_from_token(headers: &HeaderMap<HeaderValue>) -> Option<String> {
 }
 
 async fn entry(req: Request<Body>) -> Result<Response<Body>, Infallible> {
-    let mut response = Response::new(Body::empty());
+    // allow CORS for debug
+    let header = Headers::new();
+    header.set(
+        AccessControlAllowOrigin::Any
+    );
+    let mut response = Response::from_parts(header, Body::empty());
 
     // separate request with header and body data([u8])
     let (parts, body) = req.into_parts();

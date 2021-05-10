@@ -20,8 +20,18 @@ pub struct User {
     avatar: String,
 }
 
+// impl User {
+//     fn new()
+// }
+
 #[derive(Deserialize)]
 struct LoginReq {
+    username: String,
+    password: String,
+}
+
+#[derive(Deserialize)]
+struct RegisterReq {
     username: String,
     password: String,
 }
