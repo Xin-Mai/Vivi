@@ -1,22 +1,25 @@
+use crate::tool::error::ErrorMsg;
 use mongodb::bson::oid;
 use serde::{Deserialize, Deserializer, Serialize};
 
 #[derive(Serialize, Deserialize)]
-pub struct BasicRsp {
+pub struct BasicRsp<T: Serialize> {
     code: i32,
-    msg: Vec<u8>,
+    msg: T,
 }
 
-impl BasicRsp {
-    pub fn ok(msg: Vec<u8>) -> Self {
-        BasicRsp { code: 0, msg: msg }
-    }
-    pub fn err(msg: &'static str) -> Self {
-        BasicRsp {
-            code: -1,
-            msg: msg.as_bytes().to_vec(),
-        }
-    }
+// may fail because of incorrect serialization
+pub fn rsp_ok<T: Serialize>(msg: T) -> Result<Vec<u8>, ErrorMsg> {
+    let rsp = BasicRsp { code: 0, msg: msg };
+    Ok(serde_json::to_vec(&rsp)?)
+}
+
+pub fn rsp_err(msg: &'static str) -> Result<Vec<u8>, ErrorMsg> {
+    let rsp = BasicRsp {
+        code: -1,
+        msg: msg.to_string(),
+    };
+    Ok(serde_json::to_vec(&rsp)?)
 }
 
 pub fn deserialize_object_id_to_string<'de, D>(deserializer: D) -> Result<String, D::Error>

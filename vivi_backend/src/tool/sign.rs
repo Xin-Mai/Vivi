@@ -20,12 +20,12 @@ impl Signer {
         }
     }
 
-    fn sign(&self, name: &str) -> String {
+    fn sign(&self, id: &str) -> String {
         let mut claims = BTreeMap::new();
-        claims.insert("token", name);
+        claims.insert("token", id);
         let time = Utc::now().to_string();
         claims.insert("time", &time);
-        println!("Sign with time: {}", &time);
+        println!("Sign with id = {}, time: {}", id, &time);
         claims.sign_with_key(&self.key).unwrap()
     }
 

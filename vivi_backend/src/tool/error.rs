@@ -33,3 +33,13 @@ impl std::convert::From<mongodb::error::Error> for ErrorMsg {
         }
     }
 }
+
+impl std::convert::From<mongodb::bson::oid::Error> for ErrorMsg {
+    fn from(error: mongodb::bson::oid::Error) -> ErrorMsg {
+        println!("Error {:?} occur while translate string to ObjectId", error);
+        ErrorMsg {
+            code: StatusCode::BAD_REQUEST,
+            msg: "ObjectId error!",
+        }
+    }
+}
