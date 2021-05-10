@@ -28,7 +28,10 @@ lazy_static! {
 
 fn process_result(result: Result<Vec<u8>, ErrorMsg>, rsp: &mut Response<Body>) {
     match result {
-        Ok(data) => *rsp.body_mut() = Body::from(data),
+        Ok(data) => {
+            *rsp.status_mut() = StatusCode::OK;
+            *rsp.body_mut() = Body::from(data);
+        },
         Err(msg) => {
             *rsp.status_mut() = msg.code;
             *rsp.body_mut() = Body::from(msg.msg);
