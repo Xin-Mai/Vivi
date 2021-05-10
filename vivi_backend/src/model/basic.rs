@@ -1,4 +1,5 @@
-use serde::{Deserialize, Serialize};
+use mongodb::bson::oid;
+use serde::{Deserialize, Deserializer, Serialize};
 
 #[derive(Serialize, Deserialize)]
 pub struct BasicRsp {
@@ -16,4 +17,12 @@ impl BasicRsp {
             msg: msg.as_bytes().to_vec(),
         }
     }
+}
+
+pub fn deserialize_object_id_to_string<'de, D>(deserializer: D) -> Result<String, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let id = oid::ObjectId::deserialize(deserializer)?;
+    Ok(id.to_hex())
 }

@@ -1,3 +1,4 @@
+use super::basic::deserialize_object_id_to_string;
 use super::basic::BasicRsp;
 use super::db;
 use crate::tool::error::ErrorMsg;
@@ -10,8 +11,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct User {
-    #[serde(rename = "_id")]
-    id: oid::ObjectId,
+    #[serde(deserialize_with = "deserialize_object_id_to_string")]
+    id: String,
     email: String,
     username: String,
     password: String,
@@ -47,6 +48,7 @@ pub fn register(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
     Ok(vec![])
 }
 
-pub fn hello_world(data: Vec<u8>, token: String) -> Result<Vec<u8>, ErrorMsg> {
-    Ok("you success!".as_bytes().to_vec())
+pub fn hello_world(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
+    let user = USER_TABLE.find_one(doc! {"_id": &oid::ObjectId::with_string(&id).unwrap()}, None)?;
+    Ok(serde_json::to_vec(&user)?)
 }

@@ -10,12 +10,12 @@ use vivi::tool::sign;
 extern crate lazy_static;
 
 type Operation = (Method, &'static str);
-type TokenHandle = fn(Vec<u8>) -> Result<Vec<u8>, ErrorMsg>;
+type LoginHandle = fn(Vec<u8>) -> Result<Vec<u8>, ErrorMsg>;
 type Handle = fn(Vec<u8>, String) -> Result<Vec<u8>, ErrorMsg>;
 
 lazy_static! {
-    static ref LOGIN_TABLE: HashMap<Operation, TokenHandle> = [
-            ((Method::POST, "/login"), vivi::model::user::login as TokenHandle),
+    static ref LOGIN_TABLE: HashMap<Operation, LoginHandle> = [
+            ((Method::POST, "/login"), vivi::model::user::login as LoginHandle),
             ((Method::POST, "/reg"), vivi::model::user::register),
             ((Method::GET, "/"), vivi::tool::test::hello),
         ].iter().cloned().collect();
@@ -36,7 +36,7 @@ fn process_result(result: Result<Vec<u8>, ErrorMsg>, rsp: &mut Response<Body>) {
     }
 }
 
-fn retrieve_token(headers: &HeaderMap<HeaderValue>) -> Option<String> {
+fn retrieve_id_from_token(headers: &HeaderMap<HeaderValue>) -> Option<String> {
     headers
         .get("token")
         .and_then(|v| v.to_str().ok())
@@ -64,9 +64,9 @@ async fn entry(req: Request<Body>) -> Result<Response<Body>, Infallible> {
     // get token from header
     // if not exist: try to process with register/login request
     // else: try to process with other request
-    match retrieve_token(&parts.headers) {
-        Some(token) => match FUNCTION_TABLE.get(key) {
-            Some(func) => process_result(func(data, token), &mut response),
+    match retrieve_id_from_token(&parts.headers) {
+        Some(id) => match FUNCTION_TABLE.get(key) {
+            Some(func) => process_result(func(data, id), &mut response),
             None => *response.status_mut() = StatusCode::BAD_REQUEST,
         },
         None => match LOGIN_TABLE.get(key) {
