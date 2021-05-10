@@ -54,6 +54,10 @@ async fn entry(req: Request<Body>) -> Result<Response<Body>, Infallible> {
     // allow CORS for debug
     let headers = response.headers_mut();
     headers.insert(ACCESS_CONTROL_ALLOW_ORIGIN, "*".parse().unwrap());
+    if req.method() == Method::OPTIONS {
+        *response.status_mut() = StatusCode::OK;
+        return Ok(response);
+    }
 
     // separate request with header and body data([u8])
     let (parts, body) = req.into_parts();
