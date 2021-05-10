@@ -35,8 +35,8 @@ impl Signer {
     }
 }
 
-pub fn sign(name: &str) -> String {
-    SIGNER.sign(name)
+pub fn sign(id: &str) -> String {
+    SIGNER.sign(id)
 }
 
 pub fn verify(token: &str) -> Result<(String, String), Error> {

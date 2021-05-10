@@ -4,6 +4,15 @@ pub struct ErrorMsg {
     pub msg: &'static str,
 }
 
+impl ErrorMsg {
+    pub fn unknown() -> Self {
+        ErrorMsg {
+            code: StatusCode::INTERNAL_SERVER_ERROR,
+            msg: "Unknown error!",
+        }
+    }
+}
+
 impl std::convert::From<serde_json::Error> for ErrorMsg {
     fn from(error: serde_json::Error) -> ErrorMsg {
         println!(
@@ -39,6 +48,16 @@ impl std::convert::From<mongodb::bson::oid::Error> for ErrorMsg {
         println!("Error {:?} occur while translate string to ObjectId", error);
         ErrorMsg {
             code: StatusCode::BAD_REQUEST,
+            msg: "ObjectId error!",
+        }
+    }
+}
+
+impl std::convert::From<crate::model::user::UserErr> for ErrorMsg {
+    fn from(error: crate::model::user::UserErr) -> ErrorMsg {
+        println!("Error {:?} occur while translate string to ObjectId", error);
+        ErrorMsg {
+            code: StatusCode::OK,
             msg: "ObjectId error!",
         }
     }

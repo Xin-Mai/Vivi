@@ -1,4 +1,4 @@
-use hyper::header::{HeaderValue, ACCESS_CONTROL_ALLOW_ORIGIN};
+use hyper::header::HeaderValue;
 use hyper::service::{make_service_fn, service_fn};
 use hyper::{Body, HeaderMap, Method, Request, Response, Server, StatusCode};
 use std::collections::HashMap;
@@ -32,7 +32,7 @@ fn process_result(result: Result<Vec<u8>, ErrorMsg>, rsp: &mut Response<Body>) {
         Ok(data) => {
             *rsp.status_mut() = StatusCode::OK;
             *rsp.body_mut() = Body::from(data);
-        },
+        }
         Err(msg) => {
             *rsp.status_mut() = msg.code;
             *rsp.body_mut() = Body::from(msg.msg);
@@ -49,15 +49,12 @@ fn retrieve_id_from_token(headers: &HeaderMap<HeaderValue>) -> Option<String> {
 }
 
 async fn entry(req: Request<Body>) -> Result<Response<Body>, Infallible> {
-    println!("Receive request from {}, method = {}", req.uri(), req.method());
+    println!(
+        "Receive request from {}, method = {}",
+        req.uri(),
+        req.method()
+    );
     let mut response = Response::new(Body::empty());
-    // allow CORS for debug
-    let headers = response.headers_mut();
-    headers.insert(ACCESS_CONTROL_ALLOW_ORIGIN, "*".parse().unwrap());
-    if req.method() == Method::OPTIONS {
-        *response.status_mut() = StatusCode::OK;
-        return Ok(response);
-    }
 
     // separate request with header and body data([u8])
     let (parts, body) = req.into_parts();
@@ -86,7 +83,7 @@ async fn entry(req: Request<Body>) -> Result<Response<Body>, Infallible> {
             None => *response.status_mut() = StatusCode::BAD_REQUEST,
         },
     }
-    println!("Pcocess request from {} ok", &parts.uri);
+    println!("Pcocess request from {} {}", &parts.uri, response.status());
     Ok(response)
 }
 

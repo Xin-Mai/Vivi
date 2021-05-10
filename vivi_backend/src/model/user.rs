@@ -12,17 +12,20 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Debug)]
 pub struct User {
     #[serde(deserialize_with = "deserialize_object_id_to_string", rename = "_id")]
-    id: String,
+    id: Option<String>,
     email: String,
     username: String,
     password: String,
-    intro: String,
-    avatar: String,
+    intro: Option<String>,
+    avatar: Option<String>,
 }
 
-// impl User {
-//     fn new()
-// }
+#[derive(Debug)]
+pub enum UserErr {
+    NAME,
+    EMALI,
+    PASSWORD,
+}
 
 #[derive(Deserialize)]
 struct LoginReq {
@@ -34,12 +37,26 @@ struct LoginReq {
 struct RegisterReq {
     username: String,
     password: String,
+    email: String,
 }
 
 #[derive(Serialize)]
 struct LoginRsp {
     token: String,
     id: String,
+}
+
+impl User {
+    fn from_reg(req: RegisterReq) -> Self {
+        User {
+            id: None,
+            username: req.username,
+            password: req.password,
+            email: req.email,
+            intro: None,
+            avatar: None,
+        }
+    }
 }
 
 lazy_static! {
@@ -56,18 +73,30 @@ pub fn login(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
         .map_or_else(
             || basic::rsp_err("User not found"),
             |user| {
-                let tkn = sign::sign(&user.id);
-                let rsp = LoginRsp {
-                    token: tkn,
-                    id: user.id,
+                let id = match user.id {
+                    Some(id) => id,
+                    None => return basic::rsp_err("User don't have id!")
                 };
+                let tkn = sign::sign(&id);
+                let rsp = LoginRsp { token: tkn, id: id };
                 basic::rsp_ok(rsp)
             },
         )
 }
 
-pub fn register(_: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
-    Ok(vec![])
+pub fn register(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
+    let reg_req: RegisterReq = serde_json::from_slice(&data)?;
+    let insert_rsp = USER_TABLE.insert_one(User::from_reg(reg_req), None)?;
+    let id = match insert_rsp.inserted_id.as_object_id() {
+        Some(oid) => oid.to_hex(),
+        None => return Err(ErrorMsg::unknown()),
+    };
+    let token = sign::sign(&id);
+    let rsp = LoginRsp {
+        token: token,
+        id: id,
+    };
+    Ok(serde_json::to_vec(&rsp)?)
 }
 
 pub fn hello_world(_: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
