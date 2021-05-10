@@ -4,6 +4,7 @@ use super::db;
 use crate::tool::error::ErrorMsg;
 use crate::tool::sign;
 use mongodb::{
+    bson::serde_helpers::serialize_hex_string_as_object_id,
     bson::{doc, oid},
     sync::Collection,
 };
@@ -11,7 +12,11 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct User {
-    #[serde(deserialize_with = "deserialize_object_id_to_string", rename = "_id")]
+    #[serde(
+        deserialize_with = "deserialize_object_id_to_string",
+        serialize_with = "serialize_hex_string_as_object_id",
+        rename = "_id"
+    )]
     id: String,
     email: String,
     username: String,
@@ -90,7 +95,7 @@ pub fn register(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
         id: id,
     };
     USER_TABLE.insert_one(user, None)?;
-    Ok(serde_json::to_vec(&rsp)?)
+    Ok(basic::rsp_ok(&rsp)?)
 }
 
 pub fn hello_world(_: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
