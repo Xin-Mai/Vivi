@@ -17,6 +17,7 @@ lazy_static! {
     static ref LOGIN_TABLE: HashMap<Operation, LoginHandle> = [
             ((Method::POST, "/login"), vivi::model::user::login as LoginHandle),
             ((Method::POST, "/reg"), vivi::model::user::register),
+            // ((Method::OPTIONS, "/"))
             ((Method::GET, "/"), vivi::tool::test::hello),
         ].iter().cloned().collect();
     static ref FUNCTION_TABLE: HashMap<Operation, Handle> = [
@@ -48,6 +49,7 @@ fn retrieve_id_from_token(headers: &HeaderMap<HeaderValue>) -> Option<String> {
 }
 
 async fn entry(req: Request<Body>) -> Result<Response<Body>, Infallible> {
+    println!("Receive request from {}, method = {}", req.uri(), req.method());
     let mut response = Response::new(Body::empty());
     // allow CORS for debug
     let headers = response.headers_mut();
@@ -80,6 +82,7 @@ async fn entry(req: Request<Body>) -> Result<Response<Body>, Infallible> {
             None => *response.status_mut() = StatusCode::BAD_REQUEST,
         },
     }
+    println!("Pcocess request from {} ok", &parts.uri);
     Ok(response)
 }
 
