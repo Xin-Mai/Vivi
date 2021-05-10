@@ -7,8 +7,8 @@ use hyper::StatusCode;
 use mongodb::{
     bson::serde_helpers::serialize_hex_string_as_object_id,
     bson::{doc, oid},
-    sync::Collection,
     options::UpdateModifications,
+    sync::Collection,
 };
 use serde::{Deserialize, Serialize};
 
