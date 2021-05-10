@@ -62,11 +62,6 @@ impl User {
             intro: None,
         }
     }
-    fn merge_update_info(&mut self, req: UserInfoUpdateReq) {
-        self.username = req.username;
-        self.password = req.password;
-        self.intro = Some(req.intro);
-    }
 }
 
 impl RegisterReq {
@@ -85,11 +80,11 @@ impl RegisterReq {
 
 impl Into<UpdateModifications> for UserInfoUpdateReq {
     fn into(self) -> UpdateModifications {
-        doc!{
+        UpdateModifications::Document(doc!{
             "username": self.username,
             "password": self.password,
             "intro": self.intro,
-        }
+        })
     }
 }
 
