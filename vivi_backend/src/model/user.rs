@@ -80,7 +80,7 @@ impl RegisterReq {
 
 impl Into<UpdateModifications> for UserInfoUpdateReq {
     fn into(self) -> UpdateModifications {
-        UpdateModifications::Document(doc! { "$set" {
+        UpdateModifications::Document(doc! { "$set": {
             "username": self.username,
             "password": self.password,
             "intro": self.intro,
@@ -153,7 +153,7 @@ pub fn update_user_avatar(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg
             msg: "Avatar too big",
         });
     }
-    let path = format!("~/image/{}", id);
+    let path = format!("/root/avatar/{}", id);
     std::fs::write(path, data)?;
     Ok(vec![])
 }
