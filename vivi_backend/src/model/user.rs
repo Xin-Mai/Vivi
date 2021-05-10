@@ -80,11 +80,11 @@ impl RegisterReq {
 
 impl Into<UpdateModifications> for UserInfoUpdateReq {
     fn into(self) -> UpdateModifications {
-        UpdateModifications::Document(doc!{
+        UpdateModifications::Document(doc! { "$set" {
             "username": self.username,
             "password": self.password,
             "intro": self.intro,
-        })
+        }})
     }
 }
 
