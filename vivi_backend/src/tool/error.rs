@@ -29,7 +29,7 @@ impl std::convert::From<mongodb::error::Error> for ErrorMsg {
         println!("Error {:?} occur while processing database", error);
         ErrorMsg {
             code: StatusCode::INTERNAL_SERVER_ERROR,
-            msg: "Database error!"
+            msg: "Database error!",
         }
     }
 }

@@ -4,19 +4,23 @@ use jwt::{Error, SignWithKey, VerifyWithKey};
 use sha2::Sha256;
 use std::collections::BTreeMap;
 
-pub struct Signer {
-    pub key: Hmac<Sha256>,
+lazy_static! {
+    static ref SIGNER: Signer = Signer::new();
+}
+
+struct Signer {
+    key: Hmac<Sha256>,
 }
 
 impl Signer {
-    pub fn new() -> Signer {
+    fn new() -> Signer {
         let content = std::fs::read("key").unwrap();
         Signer {
             key: Hmac::new_varkey(&content).unwrap(),
         }
     }
 
-    pub fn sign(&self, name: &str) -> String {
+    fn sign(&self, name: &str) -> String {
         let mut claims = BTreeMap::new();
         claims.insert("token", name);
         let time = Utc::now().to_string();
@@ -25,8 +29,16 @@ impl Signer {
         claims.sign_with_key(&self.key).unwrap()
     }
 
-    pub fn verify(&self, token: &str) -> Result<(String, String), Error> {
+    fn verify(&self, token: &str) -> Result<(String, String), Error> {
         let claims: BTreeMap<String, String> = token.verify_with_key(&self.key)?;
         Ok((claims["token"].clone(), claims["time"].clone()))
     }
+}
+
+pub fn sign(name: &str) -> String {
+    SIGNER.sign(name)
+}
+
+pub fn verify(token: &str) -> Result<(String, String), Error> {
+    SIGNER.verify(token)
 }

@@ -4,8 +4,8 @@ use hyper::{Body, HeaderMap, Method, Request, Response, Server, StatusCode};
 use std::collections::HashMap;
 use std::convert::Infallible;
 use std::net::SocketAddr;
-use vivi::tool::sign::Signer;
 use vivi::tool::error::ErrorMsg;
+use vivi::tool::sign;
 #[macro_use]
 extern crate lazy_static;
 
@@ -14,7 +14,6 @@ type TokenHandle = fn(Vec<u8>) -> Result<Vec<u8>, ErrorMsg>;
 type Handle = fn(Vec<u8>, String) -> Result<Vec<u8>, ErrorMsg>;
 
 lazy_static! {
-    static ref SIGNER: Signer = Signer::new();
     static ref LOGIN_TABLE: HashMap<Operation, TokenHandle> = [
             ((Method::POST, "/login"), vivi::model::user::login as TokenHandle),
             ((Method::POST, "/reg"), vivi::model::user::register),
@@ -41,7 +40,7 @@ fn retrieve_token(headers: &HeaderMap<HeaderValue>) -> Option<String> {
     headers
         .get("token")
         .and_then(|v| v.to_str().ok())
-        .and_then(|v| SIGNER.verify(v).ok())
+        .and_then(|v| sign::verify(v).ok())
         .and_then(|v| Some(v.0))
 }
 
@@ -66,18 +65,14 @@ async fn entry(req: Request<Body>) -> Result<Response<Body>, Infallible> {
     // if not exist: try to process with register/login request
     // else: try to process with other request
     match retrieve_token(&parts.headers) {
-        Some(token) => {
-            match FUNCTION_TABLE.get(key) {
-                Some(func) => process_result(func(data, token), &mut response),
-                None => *response.status_mut() = StatusCode::BAD_REQUEST,
-            }
-        }
-        None => {
-            match LOGIN_TABLE.get(key) {
-                Some(func) => process_result(func(data), &mut response),
-                None => *response.status_mut() = StatusCode::BAD_REQUEST,
-            }
-        }
+        Some(token) => match FUNCTION_TABLE.get(key) {
+            Some(func) => process_result(func(data, token), &mut response),
+            None => *response.status_mut() = StatusCode::BAD_REQUEST,
+        },
+        None => match LOGIN_TABLE.get(key) {
+            Some(func) => process_result(func(data), &mut response),
+            None => *response.status_mut() = StatusCode::BAD_REQUEST,
+        },
     }
     Ok(response)
 }
