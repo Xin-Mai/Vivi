@@ -52,13 +52,3 @@ impl std::convert::From<mongodb::bson::oid::Error> for ErrorMsg {
         }
     }
 }
-
-impl std::convert::From<crate::model::user::UserErr> for ErrorMsg {
-    fn from(error: crate::model::user::UserErr) -> ErrorMsg {
-        println!("Error {:?} occur while translate string to ObjectId", error);
-        ErrorMsg {
-            code: StatusCode::OK,
-            msg: "ObjectId error!",
-        }
-    }
-}
