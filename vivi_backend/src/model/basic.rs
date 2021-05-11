@@ -1,6 +1,5 @@
 use crate::tool::error::ErrorMsg;
-use mongodb::bson::oid;
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 pub struct BasicRsp<T: Serialize> {
@@ -25,12 +24,4 @@ pub fn rsp_err(msg: &'static str) -> Result<Vec<u8>, ErrorMsg> {
         msg: msg.to_string(),
     };
     Ok(serde_json::to_vec(&rsp)?)
-}
-
-pub fn deserialize_object_id_to_string<'de, D>(deserializer: D) -> Result<String, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let id = oid::ObjectId::deserialize(deserializer)?;
-    Ok(id.to_hex())
 }

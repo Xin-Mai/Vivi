@@ -1,29 +1,22 @@
 use super::basic;
-use super::basic::deserialize_object_id_to_string;
 use super::db;
 use crate::tool::error::ErrorMsg;
 use crate::tool::sign;
 use hyper::StatusCode;
 use mongodb::{
-    bson::serde_helpers::serialize_hex_string_as_object_id,
     bson::{doc, oid},
     options::UpdateModifications,
-    sync::Collection,
 };
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct User {
-    #[serde(
-        deserialize_with = "deserialize_object_id_to_string",
-        serialize_with = "serialize_hex_string_as_object_id",
-        rename = "_id"
-    )]
+    #[serde(rename = "_id")]
     id: String,
     email: String,
     username: String,
     password: String,
-    intro: Option<String>,
+    intro: String,
 }
 
 #[derive(Deserialize)]
@@ -59,7 +52,7 @@ impl User {
             username: req.username,
             password: req.password,
             email: req.email,
-            intro: None,
+            intro: "".to_string(),
         }
     }
 }
@@ -88,15 +81,11 @@ impl Into<UpdateModifications> for UserInfoUpdateReq {
     }
 }
 
-lazy_static! {
-    static ref USER_TABLE: Collection<User> = db::user_collection();
-}
-
 const MAX_AVATAR_LEN: usize = 1_000_000;
 
 pub fn login(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
     let user_req: LoginReq = serde_json::from_slice(&data)?;
-    USER_TABLE
+    db::user_collection()
         .find_one(
             doc! {"username": &user_req.username, "password": &user_req.password},
             None,
@@ -121,8 +110,9 @@ pub fn register(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
             msg: "Register data not valid",
         });
     }
+    let collection = db::user_collection();
     // check duplicate username
-    if let Some(_) = USER_TABLE.find_one(doc! {"username": &reg_req.username}, None)? {
+    if let Some(_) = collection.find_one(doc! {"username": &reg_req.username}, None)? {
         return Ok(basic::rsp_err("Duplicate username")?);
     }
     let user = User::from_reg(reg_req);
@@ -131,14 +121,13 @@ pub fn register(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
         token: sign::sign(&id),
         id: id,
     };
-    USER_TABLE.insert_one(user, None)?;
+    collection.insert_one(user, None)?;
     Ok(basic::rsp_ok(&rsp)?)
 }
 
 pub fn update_user_info(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
     let req: UserInfoUpdateReq = serde_json::from_slice(&data)?;
-    let oid = &oid::ObjectId::with_string(&id)?;
-    let res = USER_TABLE.update_one(doc! {"_id": &oid}, req, None)?;
+    let res = db::user_collection().update_one(doc! {"_id": id}, req, None)?;
     if res.modified_count == 1 {
         Ok(vec![])
     } else {
@@ -168,7 +157,6 @@ pub fn download_avatar(_: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
 }
 
 pub fn hello_world(_: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
-    let oid = &oid::ObjectId::with_string(&id)?;
-    let user = USER_TABLE.find_one(doc! {"_id": &oid}, None)?;
+    let user = db::user_collection().find_one(doc! {"_id": id}, None)?;
     Ok(serde_json::to_vec(&user)?)
 }
