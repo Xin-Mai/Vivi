@@ -89,10 +89,10 @@ pub fn publish(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
 
 pub fn get_article(data: Vec<u8>, _: String) -> Result<Vec<u8>, ErrorMsg> {
     let req: basic::SingleStrReq = serde_json::from_slice(&data)?;
-    let aid = req.id;
+    let oid = oid::ObjectId::with_string(&req.id)?;
 
     ARTICLE_TABLE
-        .find_one_and_update(doc! {"_id": &aid}, doc! {"$inc": {"readNum": 1}}, None)?
+        .find_one_and_update(doc! {"_id": oid}, doc! {"$inc": {"read_num": 1}}, None)?
         .map_or_else(
             || basic::rsp_err("Article not found"),
             |article| basic::rsp_ok(article),
