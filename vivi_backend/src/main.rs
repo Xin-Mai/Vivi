@@ -15,19 +15,39 @@ type Handle = fn(Vec<u8>, String) -> Result<Vec<u8>, ErrorMsg>;
 
 lazy_static! {
     static ref LOGIN_TABLE: HashMap<Operation, LoginHandle> = [
-            ((Method::POST, "/login"), vivi::model::user::login as LoginHandle),
-            ((Method::POST, "/reg"), vivi::model::user::register),
-            // ((Method::OPTIONS, "/"))
-            ((Method::GET, "/"), vivi::tool::test::hello),
-        ].iter().cloned().collect();
+        (
+            (Method::POST, "/login"),
+            vivi::model::user::login as LoginHandle
+        ),
+        ((Method::POST, "/reg"), vivi::model::user::register),
+        ((Method::GET, "/"), vivi::tool::test::hello),
+    ]
+    .iter()
+    .cloned()
+    .collect();
     static ref FUNCTION_TABLE: HashMap<Operation, Handle> = [
-            ((Method::GET, "/hello"), vivi::model::user::hello_world as Handle),
-            ((Method::POST, "/user/update/info"), vivi::model::user::update_user_info),
-            ((Method::POST, "/user/update/avatar"), vivi::model::user::update_user_avatar),
-            ((Method::GET, "/avatar"), vivi::model::user::download_avatar),
-            // ((Method::GET, "/user"), vivi::user::login as Handle),
-            // ((Method::GET, "/user"), vivi::user::register),
-        ].iter().cloned().collect();
+        (
+            (Method::POST, "/user/update/info"),
+            vivi::model::user::update_user_info as Handle
+        ),
+        (
+            (Method::POST, "/user/update/avatar"),
+            vivi::model::user::update_user_avatar
+        ),
+        ((Method::GET, "/avatar"), vivi::model::user::download_avatar),
+        (
+            (Method::POST, "/article"),
+            vivi::model::article::get_article
+        ),
+        (
+            (Method::POST, "/article/publish"),
+            vivi::model::article::publish
+        ),
+        ((Method::GET, "/hello"), vivi::model::user::hello_world),
+    ]
+    .iter()
+    .cloned()
+    .collect();
 }
 
 fn process_result(result: Result<Vec<u8>, ErrorMsg>, rsp: &mut Response<Body>) {

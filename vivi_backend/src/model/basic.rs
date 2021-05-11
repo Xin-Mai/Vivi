@@ -8,6 +8,11 @@ pub struct BasicRsp<T: Serialize> {
     msg: T,
 }
 
+#[derive(Deserialize)]
+pub struct SingleStrReq {
+    pub id: String,
+}
+
 // may fail because of incorrect serialization
 pub fn rsp_ok<T: Serialize>(msg: T) -> Result<Vec<u8>, ErrorMsg> {
     let rsp = BasicRsp { code: 0, msg: msg };

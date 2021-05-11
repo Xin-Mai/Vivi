@@ -1,3 +1,4 @@
+use super::article::Article;
 use super::user::User;
 use mongodb::sync::{Client, Collection, Database};
 
@@ -9,4 +10,8 @@ lazy_static! {
 
 pub fn user_collection() -> Collection<User> {
     DB.collection("user")
+}
+
+pub fn article_collection() -> Collection<Article> {
+    DB.collection("article")
 }
