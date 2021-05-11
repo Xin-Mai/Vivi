@@ -4,6 +4,9 @@ use hyper::{Body, HeaderMap, Method, Request, Response, Server, StatusCode};
 use std::collections::HashMap;
 use std::convert::Infallible;
 use std::net::SocketAddr;
+use vivi::model::article;
+use vivi::model::comment;
+use vivi::model::user;
 use vivi::tool::error::ErrorMsg;
 use vivi::tool::sign;
 #[macro_use]
@@ -15,11 +18,8 @@ type Handle = fn(Vec<u8>, String) -> Result<Vec<u8>, ErrorMsg>;
 
 lazy_static! {
     static ref LOGIN_TABLE: HashMap<Operation, LoginHandle> = [
-        (
-            (Method::POST, "/login"),
-            vivi::model::user::login as LoginHandle
-        ),
-        ((Method::POST, "/reg"), vivi::model::user::register),
+        ((Method::POST, "/login"), user::login as LoginHandle),
+        ((Method::POST, "/reg"), user::register),
         ((Method::GET, "/"), vivi::tool::test::hello),
     ]
     .iter()
@@ -28,22 +28,19 @@ lazy_static! {
     static ref FUNCTION_TABLE: HashMap<Operation, Handle> = [
         (
             (Method::POST, "/user/update/info"),
-            vivi::model::user::update_user_info as Handle
+            user::update_user_info as Handle
         ),
         (
             (Method::POST, "/user/update/avatar"),
-            vivi::model::user::update_user_avatar
+            user::update_user_avatar
         ),
-        ((Method::GET, "/avatar"), vivi::model::user::download_avatar),
-        (
-            (Method::POST, "/article"),
-            vivi::model::article::get_article
-        ),
-        (
-            (Method::POST, "/article/publish"),
-            vivi::model::article::publish
-        ),
-        ((Method::GET, "/hello"), vivi::model::user::hello_world),
+        ((Method::POST, "/avatar"), user::download_avatar),
+        ((Method::POST, "/article"), article::get_article),
+        ((Method::POST, "/article/publish"), article::publish),
+        ((Method::POST, "/article/delete"), article::delete_article),
+        ((Method::POST, "/article/like"), article::like),
+        ((Method::POST, "/comment"), comment::get_comments),
+        ((Method::POST, "/comment/publish"), comment::publish),
     ]
     .iter()
     .cloned()

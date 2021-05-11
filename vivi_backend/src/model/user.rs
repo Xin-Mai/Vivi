@@ -147,16 +147,12 @@ pub fn update_user_avatar(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg
     Ok(vec![])
 }
 
-pub fn download_avatar(_: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
-    let path = format!("/root/avatar/{}", id);
+pub fn download_avatar(data: Vec<u8>, _: String) -> Result<Vec<u8>, ErrorMsg> {
+    let req: basic::SingleStrReq = serde_json::from_slice(&data)?;
+    let path = format!("/root/avatar/{}", req.id);
     if std::fs::metadata(&path).is_err() {
         basic::rsp_err("Avatar not exist")
     } else {
         Ok(std::fs::read(path)?)
     }
-}
-
-pub fn hello_world(_: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
-    let user = db::user_collection().find_one(doc! {"_id": id}, None)?;
-    Ok(serde_json::to_vec(&user)?)
 }

@@ -6,10 +6,10 @@ use mongodb::{
     bson::serde_helpers::chrono_datetime_as_bson_datetime,
     bson::{doc, oid},
     options::FindOptions,
-    options::UpdateModifications,
+    // options::UpdateModifications,
 };
 use serde::{Deserialize, Serialize};
-use std::collections::HashSet;
+// use std::collections::HashSet;
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -86,7 +86,7 @@ pub fn get_comments(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
     basic::rsp_ok(results)
 }
 
-pub fn delete_comment(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
+// pub fn delete_comment(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
     // let req: basic::SingleStrReq = serde_json::from_slice(&data)?;
     // let cid = req.id;
 
@@ -110,5 +110,5 @@ pub fn delete_comment(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
     //     )?;
     //     for c in cursor {}
     // }
-    Ok(vec![])
-}
+    // Ok(vec![])
+// }
