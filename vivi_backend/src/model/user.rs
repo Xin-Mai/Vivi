@@ -53,6 +53,13 @@ struct FindUserRsp {
     intro: String,
 }
 
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct UserInfoRsp {
+    read_num: i64,
+    like_num: i64,
+}
+
 impl User {
     fn from_reg(req: RegisterReq) -> Self {
         User {
@@ -160,14 +167,22 @@ pub fn user_info(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
     let uid = req.id;
     let pipeline = vec![
         doc! {"$match": {"uid": uid}},
-        doc! {"$project": { "readNum": 1 }},
+        doc! {"$project": { "readNum": 1, "likeNum": { "$size": "$likeList"} }},
+        doc! {"$group": { "readNum": { "$sum": "readNum" }, "likeNum": { "$sum": "likeNum" } } }
     ];
-    db::article_collection().aggregate(pipeline, None)?;
-        // .map_or_else(
-        //     || basic::rsp_err("User not found"),
-        //     |user| basic::rsp_ok(FindUserRsp::from(user)),
-        // )
-    Ok(vec![])
+    let cursor = db::article_collection().aggregate(pipeline, None)?;
+    let mut like_num = 0;
+    let mut read_num = 0;
+    for c in cursor {
+        let _ = c.map(|c| {
+            like_num += c.get_i64("likeNum").unwrap_or_default();
+            read_num += c.get_i64("readNum").unwrap_or_default();
+        });
+    }
+    basic::rsp_ok(UserInfoRsp {
+        like_num: like_num,
+        read_num: read_num,
+    })
 }
 
 pub fn update_user_info(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {

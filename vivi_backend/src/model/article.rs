@@ -1,9 +1,8 @@
 use super::basic;
 use super::db;
 use crate::tool::error::ErrorMsg;
-use chrono::prelude::Utc;
+use chrono::prelude::Local;
 use mongodb::{
-    bson::serde_helpers::chrono_datetime_as_bson_datetime,
     bson::{doc, oid},
     options::FindOptions,
     options::UpdateModifications,
@@ -24,8 +23,7 @@ pub struct Article {
     content: String,
     tag: String,
     uid: String,
-    #[serde(with = "chrono_datetime_as_bson_datetime")]
-    publish_date: chrono::DateTime<chrono::Utc>,
+    publish_date: String,
     read_num: i64,
     like_list: HashSet<String>,
 }
@@ -45,8 +43,7 @@ struct GetArticleRsp {
     content: String,
     tag: String,
     uid: String,
-    #[serde(with = "chrono_datetime_as_bson_datetime")]
-    publish_date: chrono::DateTime<chrono::Utc>,
+    publish_date: String,
     read_num: usize,
     like_num: usize,
     like: bool,
@@ -74,7 +71,7 @@ impl Article {
             content: req.content,
             tag: req.tag,
             uid: uid.clone(),
-            publish_date: Utc::now(),
+            publish_date: Local::now().to_rfc3339(),
             read_num: 0,
             like_list: HashSet::new(),
         }
@@ -87,7 +84,7 @@ impl Into<UpdateModifications> for PublishReq {
             "title": self.title,
             "content": self.content,
             "tag": self.tag,
-            "date": Utc::now(),
+            "date": Local::now().to_rfc3339(),
         }})
     }
 }
