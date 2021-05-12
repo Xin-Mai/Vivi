@@ -166,9 +166,9 @@ pub fn user_info(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
     let req: basic::SingleStrReq = serde_json::from_slice(&data)?;
     let uid = req.id;
     let pipeline = vec![
-        doc! {"$match": {"uid": uid}},
+        doc! {"$match": {"uid": &uid}},
         doc! {"$project": { "readNum": 1, "likeNum": { "$size": "$likeList"} }},
-        doc! {"$group": { "readNum": { "$sum": "readNum" }, "likeNum": { "$sum": "likeNum" } } }
+        doc! {"$group": { "_id": &uid, "readNum": { "$sum": "readNum" }, "likeNum": { "$sum": "likeNum" } } }
     ];
     let cursor = db::article_collection().aggregate(pipeline, None)?;
     let mut like_num = 0;
