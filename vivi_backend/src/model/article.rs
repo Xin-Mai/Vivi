@@ -128,14 +128,16 @@ pub fn publish(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
     let collection = db::article_collection();
     if aid.len() == 0 {
         let article = Article::from_publish(req, &id);
+        let aid = article.id.clone();
         collection.insert_one(article, None)?;
+        Ok(aid.as_bytes().to_vec())
     } else {
         let res = collection.update_one(doc! {"_id": &aid}, req, None)?;
         if res.modified_count != 1 {
             return Err(ErrorMsg::unknown());
         }
+        Ok(vec![])
     }
-    Ok(vec![])
 }
 
 pub fn get_article(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
