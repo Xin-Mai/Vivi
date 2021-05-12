@@ -20,6 +20,8 @@ lazy_static! {
     static ref NO_TKN_TABLE: HashMap<Operation, LoginHandle> = [
         ((Method::POST, "/login"), user::login as LoginHandle),
         ((Method::POST, "/reg"), user::register),
+        ((Method::POST, "/user"), user::find_user),
+        ((Method::POST, "/avatar"), user::download_avatar),
         ((Method::POST, "/article"), article::get_article),
         ((Method::POST, "/article/user"), article::user_articles),
         ((Method::GET, "/article/all"), article::get_articles_all),
@@ -36,7 +38,6 @@ lazy_static! {
             (Method::POST, "/user/update/avatar"),
             user::update_user_avatar
         ),
-        ((Method::POST, "/avatar"), user::download_avatar),
         ((Method::POST, "/article/publish"), article::publish),
         ((Method::POST, "/article/delete"), article::delete_article),
         ((Method::POST, "/article/like"), article::like),

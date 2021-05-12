@@ -125,6 +125,17 @@ pub fn register(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
     Ok(basic::rsp_ok(&rsp)?)
 }
 
+pub fn find_user(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
+    let req: basic::SingleStrReq = serde_json::from_slice(&data)?;
+    let uid = req.id;
+    db::user_collection()
+        .find_one(doc! {"_id": uid}, None)?
+        .map_or_else(
+            || basic::rsp_err("User not found"),
+            |user| basic::rsp_ok(user),
+        )
+}
+
 pub fn update_user_info(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
     let req: UserInfoUpdateReq = serde_json::from_slice(&data)?;
     let res = db::user_collection().update_one(doc! {"_id": id}, req, None)?;
@@ -147,7 +158,7 @@ pub fn update_user_avatar(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg
     Ok(vec![])
 }
 
-pub fn download_avatar(data: Vec<u8>, _: String) -> Result<Vec<u8>, ErrorMsg> {
+pub fn download_avatar(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
     let req: basic::SingleStrReq = serde_json::from_slice(&data)?;
     let path = format!("/root/avatar/{}", req.id);
     if std::fs::metadata(&path).is_err() {
