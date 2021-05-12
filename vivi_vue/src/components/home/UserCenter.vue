@@ -1,8 +1,10 @@
 <template>
     <div class="body">
+        <el-button type="text" style="float:right" icon="el-icon-edit-outline" v-on:click="editProfile">编辑资料</el-button>
+        <edit-dialog ref="dialog"></edit-dialog>
         <div class="personal">
                 <div class="avatar_container" >
-                    <one-line-desc :size="'big'"></one-line-desc>
+                    <one-line-desc :size="'big'" :descContent="user"></one-line-desc>
                 </div>
                 <el-button round  type="primary" class="button" icon="el-icon-plus" 
                 :disabled="passagerId==user.id?true:false"
@@ -53,8 +55,9 @@
 import ItemCard from '../common/itemCard.vue';
 import OneLineDesc from '../common/OneLineDesc.vue';
 import followAndMessage from '@/assets/utils/followAndMessage.js'
+import EditDialog from '../common/EditDialog.vue';
 export default {
-  components: { OneLineDesc, ItemCard },
+  components: { OneLineDesc, ItemCard, EditDialog },
     name:'UserCenter',
     data(){
         return{
@@ -76,10 +79,10 @@ export default {
             ],
             articles:[],
             user:{
-                id:'',
+                id: this.$route.params.id,
                 username:'',
                 intro:'',
-                url:'',
+                avatar:'',
             },
             passagerId: this.$store.state.user.id,
         }
@@ -90,20 +93,38 @@ export default {
         },
         followChange(){
             followAndMessage.followChange(this.user.id,this.passagerId);
+        },
+        /**显示资料编辑框 */
+        editProfile(){
+            this.$refs.dialog.dialogVisible = true;
         }
     },
+    
     created:function(){
         //加载头部信息
-        this.$axios.get('/usercenter/'+this.$store.state.user.id)
+        this.$axios.post('/user',{'id':this.user.id})
         .then(successResponse=>{
             if (successResponse && successResponse.status == 200){
-                this.nums = successResponse.data;
+                /*
+                // 取数据 
+                this.nums[0] = successResponse.data.followingNum;
+                this.nums[1] = successResponse.data.followerNum;
+                this.nums[2] = successResponse.data.articleNum;
+                this.nums[3] = successResponse.data.readNum;
+                this.nums[4] = successResponse.data.likeNum;*/
+                //取简介的数据
+                this.user.username = successResponse.data.username;
+                this.user.intro = successResponse.data.intro;
+                this.user.avatar = successResponse.data.avatar;
+
             }
         })
         .catch(failResponse=>{
 
         })
-        this.$axios.get('/'+this.$store.state.user.id+'/articles')
+        this.$axios.post('/user/articles',{
+            'id':this.user.id,
+        })
         .then(successResponse=>{
             if (successResponse && successResponse.status == 200){
                 this.articles = successResponse.data;

@@ -25,8 +25,8 @@ export default {
     },
     props:{
         id:{
-            type: Number,
-            default:1,
+            type: String,
+            default:"",
         },
         title:{
             type:String,

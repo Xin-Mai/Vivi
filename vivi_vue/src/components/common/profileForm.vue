@@ -1,9 +1,13 @@
 <template>
-    <body class="background">
-        <el-form :model="infoForm" :rules="rules" class="register-form" label-position="left" label-width="80px" ref="infoForm">
-            <h3 class="title">注 册</h3>
+    <el-form :model="infoForm" :rules="rules" :class="formClass" label-position="left" label-width="80px" ref="infoForm">
+            <h3 v-show="type=='reg'" class="title">{{title}}</h3>
             <el-form-item label="用户名" prop="username">
-                <el-input placeholder="请输入2-10位用户名" class="input" v-model="infoForm.username"></el-input>
+                <el-input placeholder="请输入2-10位用户名" class="input" 
+                :disabled="type=='edit'"
+                v-model="infoForm.username"></el-input>
+            </el-form-item>
+            <el-form-item  v-show="type=='edit'" label="个人介绍">
+                <el-input placeholder="用30个字介绍你自己吧" class="input" v-model="editFrom.intro"></el-input>
             </el-form-item>
             <el-form-item label="密码" prop="password">
                 <el-input show-password placeholder="请输入密码" v-model="infoForm.password"></el-input>
@@ -14,16 +18,16 @@
             <el-form-item label="邮箱">
                 <el-input placeholder="请输入邮箱" v-model="infoForm.email"></el-input>
             </el-form-item>
-            <el-button type="primary" v-on:click="register('infoForm')" class="register_button">注册</el-button>
-            <el-link :href="this.loginUrl" style="float:right;" :underline="false">已有账号？登录</el-link>
+            <el-button v-show="this.type=='reg'" type="primary" v-on:click="register('infoForm')" class="register_button">注册</el-button>
+            <el-link v-show="this.type=='reg'" :href="this.loginUrl" style="float:right;" :underline="false">已有账号？登录</el-link>
         </el-form>
-    </body>
 </template>
+
 <script>
 export default {
-    name:'Register',
+    name:'profile-form',
     data(){
-         /*表单检验 */
+        /*表单检验 */
             var passCheck=(rule,value,callback)=>{
                 if(value==''){
                     callback(new Error('请确认密码'));
@@ -37,7 +41,17 @@ export default {
                     }
                 }
             };
+            var passEmail=(rule,value,callback)=>{
+                if ("\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*".test(value)){
+                    callback();
+                }
+                else{
+                    callback(new Error('请输入正确的邮箱地址'));
+                }
+            }
         return{
+            title: this.type=='edit'?'资料编辑':'注 册',
+            formClass: this.type=='edit'?'edit-form':'register-form',
             loginUrl:'/login',
             /*表单信息*/
             infoForm:{
@@ -45,6 +59,10 @@ export default {
                 password:'',
                 check:'',
                 email:'',
+            },
+            editFrom:{
+                intro: this.info.intro,
+                avatar: this.info.avatar,
             },
             /*表单规则 */
             rules:{
@@ -62,7 +80,28 @@ export default {
             }
         }
     },
+    props:{
+        type:{
+            type:String,
+            default: 'edit',
+
+        },
+        info:{
+            type: Object,
+            default:function(){
+                return{
+                    username:'',
+                    intro:'',
+                    password:'',
+                    check:'',
+                    email:'',
+                    avatar:'',
+                }
+            }
+        }
+    },
     methods:{
+        /**注册方法 */
         register(formName){
             /*validate这是属于element-ui的方法 */
             this.$refs[formName].validate((valid)=>{
@@ -114,30 +153,22 @@ export default {
             });
         }
     }
-    
 }
 </script>
+
 <style scoped>
-.background{
-    width: 100%;
-    height: 100%;
-    background:url("../assets/img/rbg.jpg") no-repeat;
-    background-size: cover;
-    position: fixed;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    background-color: black;
-    background-position:20%;
-}
 .register-form{
     border-radius: 15px;
     width: 350px;
     border: 1px solid #eaeaea;
-    padding: 15px 35px 15px 35px;
+    padding: 0;
     box-shadow: 0 0 25px #C0C4CC;
     background-color: rgba(255, 255, 255, 0.1);
+}
+.edit-form{
+    border-radius: 15px;
+    width: fit-content;
+    padding: 15px 35px 15px 35px;
 }
 /*因为是内部类，所以需要穿透 */
 .el-input /deep/ .el-input__inner:focus{

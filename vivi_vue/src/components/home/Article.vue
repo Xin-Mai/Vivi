@@ -2,10 +2,10 @@
     <div class="container">
         <div class="header">
             <el-card class="author-card" shadow="hover">
-                <one-line-desc :size="'big'"></one-line-desc>
+                <one-line-desc :size="'big'" :uid="article.uid"></one-line-desc>
                 <div style="margin-top:15px;text-align:left">
                     <el-button class="button" round type="primary" 
-                    :disabled="readerId == article.author.id?true:false"
+                    :disabled="readerId == article.uid?true:false"
                     size="small" icon="el-icon-plus" 
                     v-on:click="followChange">关注</el-button>
                     <el-button class="button" round size="small" icon="el-icon-message">私信</el-button>
@@ -21,8 +21,8 @@
             </div>
         </div>
         <div class="content">{{article.content}}</div>
-        <comments :aid="id"></comments>
-        <button-group class="buttons"></button-group>
+        <comments  id="commentArea" :aid="article.aid" :commentList="commentList"></comments>
+        <button-group class="buttons" :commentX="commentX" :commentY="commentY" :commentNum="commentList.length"></button-group>
     </div>
 </template>
 
@@ -37,29 +37,60 @@ export default {
     data(){
         return{
             article:{
-                id: this.$route.params.id,
+                aid: '',
                 title:'this is a title',
                 content:'this is content\ntest',
                 publishDate: new Date().toString(),
                 likeNum: 0,
                 readNum: 0,
-                author:{
-                    id: '',
-                    username:'',
-                    intro:'',
-                    avater:''
-                }
+                uid: '',
+                ILike: false,
             },
+            commentList: [
+                    {content:'hh',cid:'a'},
+                    {content:'xixi',cid:'b'},
+                    {content:'233',cid:'c'},
+                    {content:'wow',cid:'d'},
+                    {content:'wwwww',cid:'e'},
+                    {content:'666',cid:'f'}
+                    ],
             readerId: this.$store.state.user.id,
+            commentX: 0,
+            commentY: 0,
         }
     },
     methods:{
         followChange(){
-            followAndMessage.followChange(this.article.author.id, this.$store.state.user.id);
+            followAndMessage.followChange(this.article.author.uid, this.$store.state.user.uid);
+        },
+        //将获取的评论构造成树形结构
+        dealComments(rawData){
+            let commentList = [];
+            let replyMap = new Map();
+            for (let item of rawData){
+                //是评论的回复
+                if (item.quote){
+                    if (replyMap.get(quote)){
+                        replyMap.get(quote).push(item); 
+                    }
+                    else{
+                        replyMap.set(quote, new Array().push(item));
+                    }
+                }
+                else{
+                    commentList.push(item);
+                }
+            }
+            for (let item of commentList){
+                item.repliList = replyMap.get(item.cid);
+            }
+            return commentList;
         }
     },
     created:function(){
-        this.$axios.get('/article/'+this.$route.params.id)
+        this.article.aid = this.$route.params.id;
+        /**获取文章内容 
+        this.$axios.get('/article/'+this.article.aid)
         .then(successResponse=>{
             if (successResponse && successResponse.status==200){
                 this.article = successResponse.data;
@@ -68,16 +99,31 @@ export default {
         .catch(failResponse=>{
             this.$message({
                 message: '加载失败，请刷新再试',
-                type: 'error',
+                type:'error',
                 offset:100,
             });
+        })*/
+        /**获取评论区内容 
+        this.$axios.get('/comment/'+this.article.aid)
+        .then(successResponse=>{
+            if (successResponse && successResponse.status == 200){
+                this.commentList = successResponse.data;
+            }
         })
+        .catch(failResponse=>{
+            
+        })*/
     },
     //阅读量增加
     mounted:function(){
         this.article.readNum += 1;
+        let commentArea = document.getElementById('commentArea');
+        this.commentX = commentArea.getBoundingClientRect().x;
+        this.commentY = commentArea.getBoundingClientRect().y;
+        //console.log(commentArea.getBoundingClientRect().x);
     },
     computed:{
+        
     }
 }
 </script>

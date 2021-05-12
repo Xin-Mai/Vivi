@@ -7,9 +7,11 @@ import store from './store'
 import '#/icon/iconfont.css'
 
 var axios = require('axios')
-axios.defaults.baseURL = 'http://localhost:8443/api'
+axios.defaults.baseURL = 'http://localhost:8080/api'
 Vue.prototype.$axios = axios
 Vue.config.productionTip = false
+
+//axios.defaults.headers.common['token'] = store.state.token;
 
 Vue.use(ElementUI)
 

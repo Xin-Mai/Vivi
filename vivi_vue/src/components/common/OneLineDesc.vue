@@ -1,11 +1,11 @@
 <template>
     <div :style="styleVar" class="one-line-desc-container">
         <div class="avatar-container">
-            <el-avatar :src="url"  class="avatar"></el-avatar>
+            <el-avatar :src="data.avatar"  class="avatar"></el-avatar>
         </div>
         <div class="desc">
-            <el-link class="name" :underline="false">{{this.descContent.username}}</el-link>
-            <label class="intro">{{intro}}</label>
+            <el-link class="name" :underline="false">{{data.username}}</el-link>
+            <label class="intro">{{data.intro}}</label>
         </div>
     </div>
 </template>
@@ -20,6 +20,10 @@ export default {
         }
     },
     props:{
+        uid:{
+            type: String,
+            default: "",
+        },
         descContent:{
             type: Object,
             default:function(){
@@ -27,7 +31,7 @@ export default {
                     id:'',
                     username: 'hh',
                     intro: this.defaultIntro,
-                    url: this.defaultUrl,
+                    avatar: this.defaultUrl,
                 }
             }
         },
@@ -49,11 +53,31 @@ export default {
         }
     },
     computed:{
+        data(){
+            /**通过uid从后端拿数据 */
+            if (this.uid ){
+                let author;
+                this.$axios.get('/user/'+this.uid)
+                .then(successResponse=>{
+                    if (successResponse && successResponse.status==200){
+                        return successResponse.data;
+                    }
+                });
+            }
+            /**直接传值而不是uid */
+            return {
+                    id: this.descContent.id,
+                    username: this.descContent.username,
+                    avatar: this.url,
+                    intro: this.intro,
+            }
+            
+        },
         url(){
-            if (!this.descContent.url){
+            if (!this.descContent.avatr){
                 return this.defaultUrl;
             }
-            return this.descContent.url;
+            return this.descContent.avatar;
 
         },
         intro(){

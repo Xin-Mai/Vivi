@@ -6,11 +6,14 @@
             :style="buttonColor"
             class="button" circle 
             :icon="is_like==0?unlike_icon:liked_icon" ></el-button>
-            <div class="num" v-on:click="scrollToComment"
+            <div class="num" 
             >{{realLike}}</div>
         </li>
         <li>
-            <el-button  class="button" circle  icon="iconfont icon-pinglun"></el-button>
+            <el-button  id="comment"
+            class="button" circle 
+            v-on:click="scrollToComment" 
+            icon="iconfont icon-pinglun"></el-button>
             <div class="num">{{commentNum}}</div>
         </li>
     </ul>
@@ -24,14 +27,27 @@ export default {
             is_like:0,
             unlike_icon:"iconfont icon-aixin",
             liked_icon:"iconfont icon-aixin1",
+            aid: this.$route.params.id,
         }
     },
     props:{
+        ILike:{
+            type: Boolean,
+            default: false,
+        },
         likeNum:{
             type: Number,
             default: 0,
         },
         commentNum:{
+            type: Number,
+            default: 0,
+        },
+        commentX:{
+            type: Number,
+            default: 0,
+        },
+        commentY:{
             type: Number,
             default: 0,
         }
@@ -42,8 +58,13 @@ export default {
             if (this.is_like == 0){
                 document.getElementById("like").blur();
             }
+            /**向后端发请求 */
+            this.$axios.post('/article/like',this.aid);
         },
         scrollToComment(){
+            //console.log('click scroll');
+            document.getElementById("comment").blur();
+            window.scrollTo(this.commentX,this.commentY);
         }
     },
     computed:{
@@ -60,6 +81,14 @@ export default {
         },
         realLike(){
             return this.likeNum+this.is_like;
+        }
+    },
+    created:function(){
+        if (this.ILike){
+            this.is_like = 1;
+        }
+        else{
+            this.is_like = 0;
         }
     }
     

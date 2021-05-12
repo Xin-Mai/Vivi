@@ -23,13 +23,14 @@
     return {
      loginForm:{
         username:'',
-        password:''
+        password:'',
      },
      responseResult:[],
      registerUrl:'/register',
     }
   },
   methods:{
+    /**登录请求 */
     login(){
       var _this=this
       this.$axios
@@ -38,11 +39,25 @@
           password:this.loginForm.password
         })
         .then(successResponse=>{
-          if(successResponse && successResponse.status==200){
-            this.loginForm.id = successResponse.data.intData.id;
-            _this.$store.commit('login',this.loginForm)
-            var path=_this.$route.query.redirect
-            this.$router.replace({path: path === '/' || path === undefined ? '/index' : path})
+          if(successResponse && successResponse.status==200 ){
+            //成功处理
+            if (successResponse.data.code == 0){
+              _this.$store.commit('login',{
+                username: this.loginForm.username,
+                id: successResponse.data.msg.id,
+                token: successResponse.data.msg.token,
+              })
+              var path=_this.$route.query.redirect
+              this.$router.replace({path: path === '/' || path === undefined ? '/index' : path})
+            }
+            //客户端请求被拒绝
+            else{
+              this.$message({
+                message:'用户名或密码错误！',
+                type:'error',
+                offset:100,
+              })
+            }
           }
         })
         .catch(failResponse=>{

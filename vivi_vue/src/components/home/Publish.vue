@@ -23,8 +23,10 @@ export default {
     name:'Publish',
     data(){
         return{
+            aid: this.$route.query.aid ,
             title:'',
             content:'',
+            tag:'',
         }
     },
     methods:{
@@ -41,13 +43,15 @@ export default {
         },
         commit(){
             if (this.title&&this.content){
-                console.log(this.title,this.content);
-                this.$axios.post('/publish',{
+                //console.log(this.title,this.content);
+                if (!this.aid){
+                    this.aid = "";
+                }
+                this.$axios.post('article/publish',{
                     title: this.title,
                     content: this.content,
-                    author:{
-                        id: this.$store.state.user.id,
-                    }
+                    tag: this.tag,
+                    aid: this.aid,
                 })
                 .then(successResponse=>{
                     if(successResponse && successResponse.status==200){
