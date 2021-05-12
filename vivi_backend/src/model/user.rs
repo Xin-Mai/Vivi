@@ -167,8 +167,9 @@ pub fn user_info(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
     let uid = req.id;
     let pipeline = vec![
         doc! {"$match": {"uid": &uid}},
-        doc! {"$project": { "readNum": 1, "likeNum": { "$size": "$likeList"} }},
-        doc! {"$group": { "_id": &uid, "readNum": { "$sum": "readNum" }, "likeNum": { "$sum": "likeNum" } } }
+        // doc! {"$project": { "readNum": 1, "likeNum": { "$size": "$likeList"} }},
+        doc! {"$group": { "_id": "$uid", "readNum": { "$sum": "readNum" },
+        "likeNum": { "$sum": { "$size": "$likeList"} } } },
     ];
     let cursor = db::article_collection().aggregate(pipeline, None)?;
     let mut like_num = 0;
@@ -177,6 +178,7 @@ pub fn user_info(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
         let _ = c.map(|c| {
             like_num += c.get_i64("likeNum").unwrap_or_default();
             read_num += c.get_i64("readNum").unwrap_or_default();
+            println!("Get document: {}", c);
         });
     }
     basic::rsp_ok(UserInfoRsp {
