@@ -155,6 +155,21 @@ pub fn find_user(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
         )
 }
 
+pub fn user_info(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
+    let req: basic::SingleStrReq = serde_json::from_slice(&data)?;
+    let uid = req.id;
+    let pipeline = vec![
+        doc! {"$match": {"uid": uid}},
+        doc! {"$project": { "readNum": 1 }},
+    ];
+    db::article_collection().aggregate(pipeline, None)?;
+        // .map_or_else(
+        //     || basic::rsp_err("User not found"),
+        //     |user| basic::rsp_ok(FindUserRsp::from(user)),
+        // )
+    Ok(vec![])
+}
+
 pub fn update_user_info(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
     let req: UserInfoUpdateReq = serde_json::from_slice(&data)?;
     let res = db::user_collection().update_one(doc! {"_id": id}, req, None)?;

@@ -26,7 +26,7 @@ pub struct Article {
     uid: String,
     #[serde(with = "chrono_datetime_as_bson_datetime")]
     publish_date: chrono::DateTime<chrono::Utc>,
-    read_num: usize,
+    read_num: i64,
     like_list: HashSet<String>,
 }
 
@@ -102,7 +102,7 @@ impl Into<GetArticleRsp> for Article {
             tag: self.tag,
             uid: self.uid,
             publish_date: self.publish_date,
-            read_num: self.read_num,
+            read_num: self.read_num as usize,
             like_num: set.len(),
             like: i_like,
         }
@@ -116,7 +116,7 @@ impl Into<ArticlePreview> for Article {
             title: self.title,
             content: self.content,
             uid: self.uid,
-            read_num: self.read_num,
+            read_num: self.read_num as usize,
             like_num: self.like_list.len(),
         }
     }
