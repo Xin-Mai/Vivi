@@ -52,6 +52,7 @@ struct GetArticleRsp {
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 struct ArticlePreview {
+    id: String,
     title: String,
     content: String,
     uid: String,
@@ -110,6 +111,7 @@ impl Into<ArticlePreview> for Article {
     fn into(mut self) -> ArticlePreview {
         self.content.truncate(MAX_PREVIEW_SIZE);
         ArticlePreview {
+            id: self.id,
             title: self.title,
             content: self.content,
             uid: self.uid,
@@ -127,13 +129,13 @@ pub fn publish(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
         let article = Article::from_publish(req, &id);
         let aid = article.id.clone();
         collection.insert_one(article, None)?;
-        Ok(aid.as_bytes().to_vec())
+        basic::rsp_ok(aid)
     } else {
         let res = collection.update_one(doc! {"_id": &aid}, req, None)?;
         if res.modified_count != 1 {
             return Err(ErrorMsg::unknown());
         }
-        Ok(vec![])
+        basic::rsp_ok("")
     }
 }
 
@@ -193,7 +195,7 @@ pub fn like(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
                 if res.modified_count != 1 {
                     Err(ErrorMsg::unknown())
                 } else {
-                    Ok(vec![])
+                    basic::rsp_ok("")
                 }
             },
         )
@@ -206,6 +208,6 @@ pub fn delete_article(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
         basic::rsp_err("Delete failed")
     } else {
         db::comment_collection().delete_many(doc! {"aid": req.id}, None)?;
-        Ok(vec![])
+        basic::rsp_ok("")
     }
 }

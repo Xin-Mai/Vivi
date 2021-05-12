@@ -85,6 +85,7 @@ async fn entry(req: Request<Body>) -> Result<Response<Body>, Infallible> {
         Ok(data) => data,
         Err(_) => {
             *response.status_mut() = StatusCode::BAD_REQUEST;
+            *response.body_mut() = Body::from("Couldn't parse body.");
             return Ok(response);
         }
     }
@@ -99,11 +100,17 @@ async fn entry(req: Request<Body>) -> Result<Response<Body>, Infallible> {
     match retrieve_id_from_token(&parts.headers) {
         Some(id) => match FUNCTION_TABLE.get(key) {
             Some(func) => process_result(func(data, id), &mut response),
-            None => *response.status_mut() = StatusCode::BAD_REQUEST,
+            None => {
+                *response.status_mut() = StatusCode::BAD_REQUEST;
+                *response.body_mut() = Body::from(format!("Function {:?} not found.", key));
+            },
         },
         None => match NO_TKN_TABLE.get(key) {
             Some(func) => process_result(func(data), &mut response),
-            None => *response.status_mut() = StatusCode::BAD_REQUEST,
+            None => {
+                *response.status_mut() = StatusCode::BAD_REQUEST;
+                *response.body_mut() = Body::from(format!("Function {:?} not found.", key));
+            },
         },
     }
     println!("Pcocess request from {} {}", &parts.uri, response.status());

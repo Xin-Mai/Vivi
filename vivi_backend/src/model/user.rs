@@ -47,7 +47,6 @@ struct UserInfoUpdateReq {
 
 #[derive(Serialize)]
 struct FindUserRsp {
-    id: String,
     username: String,
     email: String,
     intro: String,
@@ -58,6 +57,7 @@ struct FindUserRsp {
 struct UserInfoRsp {
     read_num: i64,
     like_num: i64,
+    count: i64,
 }
 
 impl User {
@@ -99,7 +99,6 @@ impl Into<UpdateModifications> for UserInfoUpdateReq {
 impl From<User> for FindUserRsp {
     fn from(user: User) -> FindUserRsp {
         FindUserRsp {
-            id: user.id,
             username: user.username,
             email: user.email,
             intro: user.intro,
@@ -169,14 +168,17 @@ pub fn user_info(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
         doc! {"$match": {"uid": &uid}},
         doc! {"$group": { "_id": "$uid",
              "reads": { "$sum": "$readNum" },
-            "likes": { "$sum": { "$size": "$likeList"} }
+            "likes": { "$sum": { "$size": "$likeList"} },
+            "counts": { "$sum": 1 },
         }},
     ];
     let cursor = db::article_collection().aggregate(pipeline, None)?;
     let mut like_num = 0;
     let mut read_num = 0;
+    let mut count = 0;
     for c in cursor {
         let _ = c.map(|c| {
+            count += c.get_i32("counts").unwrap_or_default() as i64;
             like_num += c.get_i32("likes").unwrap_or_default() as i64;
             read_num += c.get_i64("reads").unwrap_or_default();
         });
@@ -184,6 +186,7 @@ pub fn user_info(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
     basic::rsp_ok(UserInfoRsp {
         like_num: like_num,
         read_num: read_num,
+        count: count,
     })
 }
 
@@ -191,9 +194,9 @@ pub fn update_user_info(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> 
     let req: UserInfoUpdateReq = serde_json::from_slice(&data)?;
     let res = db::user_collection().update_one(doc! {"_id": id}, req, None)?;
     if res.modified_count == 1 {
-        Ok(vec![])
+        basic::rsp_ok("")
     } else {
-        Err(ErrorMsg::unknown())
+        basic::rsp_err("User not found")
     }
 }
 
@@ -206,7 +209,7 @@ pub fn update_user_avatar(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg
     }
     let path = format!("/root/avatar/{}", id);
     std::fs::write(path, data)?;
-    Ok(vec![])
+    basic::rsp_ok("")
 }
 
 pub fn download_avatar(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
