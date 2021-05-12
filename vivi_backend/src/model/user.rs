@@ -153,8 +153,6 @@ pub fn download_avatar(data: Vec<u8>, _: String) -> Result<Vec<u8>, ErrorMsg> {
     if std::fs::metadata(&path).is_err() {
         basic::rsp_err("Avatar not exist")
     } else {
-        let data = std::fs::read(path)?;
-        println!("Read avatar data, len = {}", data.len());
-        Ok(data)
+        Ok(std::fs::read(path)?)
     }
 }

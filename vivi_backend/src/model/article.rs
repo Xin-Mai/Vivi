@@ -110,7 +110,7 @@ pub fn publish(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
     Ok(vec![])
 }
 
-pub fn get_article(data: Vec<u8>, _: String) -> Result<Vec<u8>, ErrorMsg> {
+pub fn get_article(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
     let req: basic::SingleStrReq = serde_json::from_slice(&data)?;
 
     db::article_collection()

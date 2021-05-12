@@ -17,10 +17,10 @@ type LoginHandle = fn(Vec<u8>) -> Result<Vec<u8>, ErrorMsg>;
 type Handle = fn(Vec<u8>, String) -> Result<Vec<u8>, ErrorMsg>;
 
 lazy_static! {
-    static ref LOGIN_TABLE: HashMap<Operation, LoginHandle> = [
+    static ref NO_TKN_TABLE: HashMap<Operation, LoginHandle> = [
         ((Method::POST, "/login"), user::login as LoginHandle),
         ((Method::POST, "/reg"), user::register),
-        ((Method::GET, "/"), vivi::tool::test::hello),
+        ((Method::POST, "/article"), article::get_article),
     ]
     .iter()
     .cloned()
@@ -35,7 +35,6 @@ lazy_static! {
             user::update_user_avatar
         ),
         ((Method::POST, "/avatar"), user::download_avatar),
-        ((Method::POST, "/article"), article::get_article),
         ((Method::POST, "/article/publish"), article::publish),
         ((Method::POST, "/article/delete"), article::delete_article),
         ((Method::POST, "/article/like"), article::like),
@@ -98,7 +97,7 @@ async fn entry(req: Request<Body>) -> Result<Response<Body>, Infallible> {
             Some(func) => process_result(func(data, id), &mut response),
             None => *response.status_mut() = StatusCode::BAD_REQUEST,
         },
-        None => match LOGIN_TABLE.get(key) {
+        None => match NO_TKN_TABLE.get(key) {
             Some(func) => process_result(func(data), &mut response),
             None => *response.status_mut() = StatusCode::BAD_REQUEST,
         },
