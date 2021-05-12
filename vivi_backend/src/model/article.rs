@@ -202,10 +202,11 @@ pub fn like(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
 
 pub fn delete_article(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
     let req: basic::SingleStrReq = serde_json::from_slice(&data)?;
-    let res = db::article_collection().delete_one(doc! {"_id": req.id, "uid": id}, None)?;
+    let res = db::article_collection().delete_one(doc! {"_id": &req.id, "uid": id}, None)?;
     if res.deleted_count != 1 {
         basic::rsp_err("Delete failed")
     } else {
+        db::comment_collection().delete_many(doc! {"aid": req.id}, None)?;
         Ok(vec![])
     }
 }
