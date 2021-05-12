@@ -1,14 +1,9 @@
 use super::basic;
 use super::db;
 use crate::tool::error::ErrorMsg;
-use chrono::prelude::Utc;
-use mongodb::{
-    bson::serde_helpers::chrono_datetime_as_bson_datetime,
-    bson::{doc, oid},
-    // options::UpdateModifications,
-};
+use chrono::prelude::Local;
+use mongodb::bson::{doc, oid};
 use serde::{Deserialize, Serialize};
-// use std::collections::HashSet;
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -19,8 +14,7 @@ pub struct Comment {
     uid: String,
     quote: String,
     content: String,
-    #[serde(with = "chrono_datetime_as_bson_datetime")]
-    publish_date: chrono::DateTime<chrono::Utc>,
+    publish_date: String,
 }
 
 #[derive(Deserialize)]
@@ -34,8 +28,7 @@ struct CommentPublishReq {
 #[serde(rename_all = "camelCase")]
 struct CommentPublishRsp {
     cid: String,
-    #[serde(with = "chrono_datetime_as_bson_datetime")]
-    publish_date: chrono::DateTime<chrono::Utc>,
+    publish_date: String,
 }
 
 impl Comment {
@@ -46,7 +39,7 @@ impl Comment {
             uid: uid.clone(),
             quote: req.quote,
             content: req.content,
-            publish_date: Utc::now(),
+            publish_date: Local::now().to_rfc3339(),
         }
     }
 }
