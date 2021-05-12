@@ -21,6 +21,8 @@ lazy_static! {
         ((Method::POST, "/login"), user::login as LoginHandle),
         ((Method::POST, "/reg"), user::register),
         ((Method::POST, "/article"), article::get_article),
+        ((Method::POST, "/article/user"), article::user_articles),
+        ((Method::GET, "/article/all"), article::get_articles_all),
     ]
     .iter()
     .cloned()

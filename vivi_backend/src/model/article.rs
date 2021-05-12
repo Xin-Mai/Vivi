@@ -5,10 +5,15 @@ use chrono::prelude::Utc;
 use mongodb::{
     bson::serde_helpers::chrono_datetime_as_bson_datetime,
     bson::{doc, oid},
+    options::FindOptions,
     options::UpdateModifications,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
+
+const USER_ARTICLE_LIMIT: i64 = 10;
+const ALL_ARTICLE_LIMIT: i64 = 10;
+const MAX_PREVIEW_SIZE: usize = 200;
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -45,6 +50,16 @@ struct GetArticleRsp {
     read_num: usize,
     like_num: usize,
     like: bool,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct ArticlePreview {
+    title: String,
+    content: String,
+    uid: String,
+    read_num: usize,
+    like_num: usize,
 }
 
 impl Article {
@@ -94,6 +109,19 @@ impl Into<GetArticleRsp> for Article {
     }
 }
 
+impl Into<ArticlePreview> for Article {
+    fn into(mut self) -> ArticlePreview {
+        self.content.truncate(MAX_PREVIEW_SIZE);
+        ArticlePreview {
+            title: self.title,
+            content: self.content,
+            uid: self.uid,
+            read_num: self.read_num,
+            like_num: self.like_list.len(),
+        }
+    }
+}
+
 pub fn publish(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
     let req: PublishReq = serde_json::from_slice(&data)?;
     let aid = &req.id;
@@ -119,6 +147,26 @@ pub fn get_article(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
             || basic::rsp_err("Article not found"),
             |article| basic::rsp_ok::<GetArticleRsp>(article.into()),
         )
+}
+
+pub fn get_articles_all(_: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
+    find_article(None, ALL_ARTICLE_LIMIT)
+}
+
+pub fn user_articles(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
+    let req: basic::SingleStrReq = serde_json::from_slice(&data)?;
+    find_article(Some(req.id), USER_ARTICLE_LIMIT)
+}
+
+fn find_article(uid: Option<String>, count: i64) -> Result<Vec<u8>, ErrorMsg> {
+    let filter = uid.map(|id| doc! {"uid": id});
+    let options: FindOptions = FindOptions::builder().limit(count).build();
+    let cursor = db::article_collection().find(filter, basic::OptionWrapper(options))?;
+    let mut res: Vec<ArticlePreview> = Vec::new();
+    for c in cursor {
+        res.push(c?.into());
+    }
+    basic::rsp_ok(res)
 }
 
 pub fn like(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
