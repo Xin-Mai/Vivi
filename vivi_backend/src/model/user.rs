@@ -45,6 +45,14 @@ struct UserInfoUpdateReq {
     intro: String,
 }
 
+#[derive(Serialize)]
+struct FindUserRsp {
+    id: String,
+    username: String,
+    email: String,
+    intro: String,
+}
+
 impl User {
     fn from_reg(req: RegisterReq) -> Self {
         User {
@@ -78,6 +86,17 @@ impl Into<UpdateModifications> for UserInfoUpdateReq {
             "password": self.password,
             "intro": self.intro,
         }})
+    }
+}
+
+impl From<User> for FindUserRsp {
+    fn from(user: User) -> FindUserRsp {
+        FindUserRsp {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            intro: user.intro,
+        }
     }
 }
 
@@ -132,7 +151,7 @@ pub fn find_user(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
         .find_one(doc! {"_id": uid}, None)?
         .map_or_else(
             || basic::rsp_err("User not found"),
-            |user| basic::rsp_ok(user),
+            |user| basic::rsp_ok(FindUserRsp::from(user)),
         )
 }
 
