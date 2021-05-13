@@ -1,15 +1,16 @@
 <template>
     <div class="body">
-        <el-button type="text" style="float:right" icon="el-icon-edit-outline" v-on:click="editProfile">编辑资料</el-button>
-        <edit-dialog ref="dialog"></edit-dialog>
+        <el-button :v-show="passagerId==user.id?true:false"
+        type="text" style="float:right"
+        icon="el-icon-edit-outline" v-on:click="editProfile">编辑资料</el-button>
+        <edit-dialog ref="dialog" v-bind="user"></edit-dialog>
         <div class="personal">
                 <div class="avatar_container" >
-                    <one-line-desc :size="'big'" :descContent="user"></one-line-desc>
+                    <one-line-desc :size="'big'" :uid="user.id"></one-line-desc>
                 </div>
-                <el-button round  type="primary" class="button" icon="el-icon-plus" 
+                <el-button round  type="primary" class="button" icon="el-icon-plus"
                 :disabled="passagerId==user.id?true:false"
-                v-on:click="followChange"
-                >关注</el-button>
+                v-on:click="followChange">关注</el-button>
                 <el-button round class="button" icon="el-icon-message">私信</el-button>
                 <div class="info">
                 <ul>
@@ -23,7 +24,8 @@
         <div class="article_container">
             <el-tabs v-model="activeName" @tab-click="handleClick" style="float:left;width:80%">
                 <el-tab-pane label="文章" :lazy="is_lazy">
-                    <div class="pane">
+                    <div v-if="articles.length==0?true:false">还没有发表过文章哦</div>
+                    <div v-else class="pane">
                         <item-card v-for = "i in articles.length" v-bind:key=i v-bind="articles[i-1]"></item-card>
                     </div>
                 </el-tab-pane>
@@ -55,6 +57,7 @@
 import ItemCard from '../common/itemCard.vue';
 import OneLineDesc from '../common/OneLineDesc.vue';
 import followAndMessage from '@/assets/utils/followAndMessage.js'
+import avatarGetter from '@/assets/utils/avatarGetter.js'
 import EditDialog from '../common/EditDialog.vue';
 export default {
   components: { OneLineDesc, ItemCard, EditDialog },
@@ -97,37 +100,46 @@ export default {
         /**显示资料编辑框 */
         editProfile(){
             this.$refs.dialog.dialogVisible = true;
+        },
+        getAvatar(){
+            avatarGetter.getAvatar(this.user.id).then((url)=>{
+                this.user.avatar = url;
+            });
         }
     },
-    
+
     created:function(){
         //加载头部信息
         this.$axios.post('/user',{'id':this.user.id})
         .then(successResponse=>{
             if (successResponse && successResponse.status == 200){
-                /*
-                // 取数据 
-                this.nums[0] = successResponse.data.followingNum;
-                this.nums[1] = successResponse.data.followerNum;
-                this.nums[2] = successResponse.data.articleNum;
-                this.nums[3] = successResponse.data.readNum;
-                this.nums[4] = successResponse.data.likeNum;*/
-                //取简介的数据
-                this.user.username = successResponse.data.username;
-                this.user.intro = successResponse.data.intro;
-                this.user.avatar = successResponse.data.avatar;
-
+                if (successResponse.data.code == 0){
+                    /*
+                    // 取数据
+                    this.nums[0] = successResponse.data.followingNum;
+                    this.nums[1] = successResponse.data.followerNum;
+                    this.nums[2] = successResponse.data.articleNum;
+                    this.nums[3] = successResponse.data.readNum;
+                    this.nums[4] = successResponse.data.likeNum;*/
+                    //取简介的数据
+                    this.user.username = successResponse.data.msg.username;
+                    this.user.intro = successResponse.data.msg.intro;
+                    this.user.email = successResponse.data.msg.email;
+                }
             }
         })
         .catch(failResponse=>{
 
         })
-        this.$axios.post('/user/articles',{
+        this.getAvatar();
+        this.$axios.post('/article/user',{
             'id':this.user.id,
         })
         .then(successResponse=>{
             if (successResponse && successResponse.status == 200){
-                this.articles = successResponse.data;
+                if (successResponse.data.code == 0){
+                    this.articles = successResponse.data.msg;
+                }
                 //console.log(this.articles);
             }
         })
@@ -138,7 +150,7 @@ export default {
             })
         })
     }
-    
+
 }
 </script>
 <style>

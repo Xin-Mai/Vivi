@@ -1,7 +1,7 @@
 <template>
     <el-card :body-style="{ padding: '0px' }" class="card">
         <div class="item">
-        <one-line-desc id="desc" :descContent="this.author"></one-line-desc>
+        <one-line-desc id="desc" :uid="uid"></one-line-desc>
         <div class="middle">
             <div class="animation-container">
                 <el-link class="title" :underline="false" :href="'/article/'+id" >{{this.title}}</el-link>
@@ -9,8 +9,8 @@
             </div>
         </div>
         <div class="info">
-            <label class="label1">{{this.readNum}}</label>
-            <label class="label2">{{this.likeNum}}</label>
+            <label class="label1"><i class="iconfont icon-yanjing"></i>{{this.readNum}}</label>
+            <label class="label2"><i class="iconfont icon-aixin"></i>{{this.likeNum}}</label>
         </div>
         </div>
     </el-card>
@@ -25,6 +25,10 @@ export default {
     },
     props:{
         id:{
+            type: String,
+            default:"",
+        },
+        uid:{
             type: String,
             default:"",
         },
@@ -143,6 +147,6 @@ export default {
 .label1{
     position:absolute;
     bottom:10px;
-    right:25px;
+    right:45px;
 }
 </style>

@@ -22,7 +22,8 @@
         </div>
         <div class="content">{{article.content}}</div>
         <comments  id="commentArea" :aid="article.aid" :commentList="commentList"></comments>
-        <button-group class="buttons" :commentX="commentX" :commentY="commentY" :commentNum="commentList.length"></button-group>
+        <button-group class="buttons" :ILike="article.like"
+		:commentX="commentX" :commentY="commentY" :commentNum="commentList.length"></button-group>
     </div>
 </template>
 
@@ -44,15 +45,15 @@ export default {
                 likeNum: 0,
                 readNum: 0,
                 uid: '',
-                ILike: false,
+                like: false,
             },
             commentList: [
-                    {content:'hh',cid:'a'},
+                    /*{content:'hh',cid:'a'},
                     {content:'xixi',cid:'b'},
                     {content:'233',cid:'c'},
                     {content:'wow',cid:'d'},
                     {content:'wwwww',cid:'e'},
-                    {content:'666',cid:'f'}
+                    {content:'666',cid:'f'}*/
                     ],
             readerId: this.$store.state.user.id,
             commentX: 0,
@@ -66,7 +67,7 @@ export default {
         //将获取的评论构造成树形结构
         dealComments(rawData){
             let commentList = [];
-            let replyMap = new Map();
+            let replyMap = [];
             for (let item of rawData){
                 //是评论的回复
                 if (item.quote){
@@ -89,11 +90,11 @@ export default {
     },
     created:function(){
         this.article.aid = this.$route.params.id;
-        /**获取文章内容 
-        this.$axios.get('/article/'+this.article.aid)
+        
+        this.$axios.post('/article',{'id':this.article.aid})
         .then(successResponse=>{
             if (successResponse && successResponse.status==200){
-                this.article = successResponse.data;
+                this.article = successResponse.data.msg;
             }
         })
         .catch(failResponse=>{
@@ -102,7 +103,7 @@ export default {
                 type:'error',
                 offset:100,
             });
-        })*/
+        })
         /**获取评论区内容 
         this.$axios.get('/comment/'+this.article.aid)
         .then(successResponse=>{

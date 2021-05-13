@@ -2,24 +2,40 @@
     <el-form :model="infoForm" :rules="rules" :class="formClass" label-position="left" label-width="80px" ref="infoForm">
             <h3 v-show="type=='reg'" class="title">{{title}}</h3>
             <el-form-item label="用户名" prop="username">
-                <el-input placeholder="请输入2-10位用户名" class="input" 
+                <el-input placeholder="请输入2-10位用户名" class="input"
                 :disabled="type=='edit'"
                 v-model="infoForm.username"></el-input>
             </el-form-item>
-            <el-form-item  v-show="type=='edit'" label="个人介绍">
-                <el-input placeholder="用30个字介绍你自己吧" class="input" v-model="editFrom.intro"></el-input>
+            <el-form-item  v-if="showEdit" label="个人介绍">
+                <el-input placeholder="用30个字介绍你自己吧" class="input" v-model="editForm.intro"></el-input>
             </el-form-item>
-            <el-form-item label="密码" prop="password">
+            <el-form-item v-if="showEdit" label="修改密码">
+                <el-button type="text" style="float:right" icon="el-icon-edit" @click="showTrans=!showTrans">修改密码</el-button>
+            </el-form-item>
+            <el-collapse-transition>
+                <div v-if="showTrans">
+                    <el-form-item label="密码" class="left-form-item" prop="old_password">
+                        <el-input show-password placeholder="请输入账号密码" v-model="editForm.old_password"></el-input>
+                    </el-form-item>
+                    <el-form-item label="新密码" prop="password">
+                        <el-input show-password placeholder="请输入新密码" v-model="infoForm.password"></el-input>
+                    </el-form-item>
+                    <el-form-item label="确认密码" prop="check">
+                        <el-input show-password placeholder="请再次输入密码" v-model="infoForm.check"></el-input>
+                    </el-form-item>
+                </div>
+            </el-collapse-transition>
+            <el-form-item v-if="!showEdit" label="密码" prop="password">
                 <el-input show-password placeholder="请输入密码" v-model="infoForm.password"></el-input>
             </el-form-item>
-            <el-form-item label="确认密码" prop="check">
+            <el-form-item v-if="!showEdit" label="确认密码" prop="check">
                 <el-input show-password placeholder="请再次输入密码" v-model="infoForm.check"></el-input>
             </el-form-item>
             <el-form-item label="邮箱">
                 <el-input placeholder="请输入邮箱" v-model="infoForm.email"></el-input>
             </el-form-item>
-            <el-button v-show="this.type=='reg'" type="primary" v-on:click="register('infoForm')" class="register_button">注册</el-button>
-            <el-link v-show="this.type=='reg'" :href="this.loginUrl" style="float:right;" :underline="false">已有账号？登录</el-link>
+            <el-button v-if="this.type=='reg'" type="primary" v-on:click="register('infoForm')" class="register_button">注册</el-button>
+            <el-link v-if="this.type=='reg'" :href="this.loginUrl" style="float:right;" :underline="false">已有账号？登录</el-link>
         </el-form>
 </template>
 
@@ -52,17 +68,20 @@ export default {
         return{
             title: this.type=='edit'?'资料编辑':'注 册',
             formClass: this.type=='edit'?'edit-form':'register-form',
+            showEdit: this.type == 'edit'?true:false,
+            showTrans: false,
             loginUrl:'/login',
             /*表单信息*/
             infoForm:{
-                username:'',
+                username:this.info.username,
                 password:'',
                 check:'',
                 email:'',
             },
-            editFrom:{
+            editForm:{
                 intro: this.info.intro,
                 avatar: this.info.avatar,
+                old_password:'',
             },
             /*表单规则 */
             rules:{
@@ -84,7 +103,6 @@ export default {
         type:{
             type:String,
             default: 'edit',
-
         },
         info:{
             type: Object,
@@ -92,8 +110,6 @@ export default {
                 return{
                     username:'',
                     intro:'',
-                    password:'',
-                    check:'',
                     email:'',
                     avatar:'',
                 }
@@ -151,6 +167,33 @@ export default {
                     return false;
                 }
             });
+        },
+        /**更新*/
+        updateInfo(formName){
+          this.$refs[formName].validate((valid)=>{
+            if(valid){
+              alert('submit');
+              let result = {
+                username: this.infoForm.username,
+                intro: this.editForm.intro,
+                password: '123',
+              };
+              this.$axios.post('/user/update/info',result,{
+                headers:{
+                  token: this.$store.state.token,
+                }
+              }).then((successResponse)=>{
+                if (successResponse && successResponse.status == 200){
+                  if (successResponse.data.code == 0){
+                    alert('success');
+                  }
+                  else{
+                    this.$message.error(successResponse.data.msg);
+                  }
+                }
+              }).catch((failResponse)=>{})
+            }
+          })
         }
     }
 }
@@ -174,7 +217,6 @@ export default {
 .el-input /deep/ .el-input__inner:focus{
     border-color:#C0C4CC;
 }
-
  .register_button{
     width: 100%;
     opacity: 100%;
