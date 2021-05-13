@@ -39,6 +39,10 @@ lazy_static! {
             (Method::POST, "/user/update/avatar"),
             user::update_user_avatar
         ),
+        (
+            (Method::POST, "/user/update/pwd"),
+            user::update_user_pwd,
+        ),
         ((Method::POST, "/article/publish"), article::publish),
         ((Method::POST, "/article/delete"), article::delete_article),
         ((Method::POST, "/article/like"), article::like),
@@ -103,14 +107,14 @@ async fn entry(req: Request<Body>) -> Result<Response<Body>, Infallible> {
             None => {
                 *response.status_mut() = StatusCode::BAD_REQUEST;
                 *response.body_mut() = Body::from(format!("Function {:?} not found.", key));
-            },
+            }
         },
         None => match NO_TKN_TABLE.get(key) {
             Some(func) => process_result(func(data), &mut response),
             None => {
                 *response.status_mut() = StatusCode::BAD_REQUEST;
                 *response.body_mut() = Body::from(format!("Function {:?} not found.", key));
-            },
+            }
         },
     }
     println!("Pcocess request from {} {}", &parts.uri, response.status());
