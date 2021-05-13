@@ -1,22 +1,29 @@
 <template>
     <div :style="styleVar" class="one-line-desc-container">
         <div class="avatar-container">
-            <el-avatar :src="data.avatar"  class="avatar"></el-avatar>
+            <el-avatar :src="avatar"  class="avatar"></el-avatar>
         </div>
         <div class="desc">
-            <el-link class="name" :underline="false">{{data.username}}</el-link>
-            <label class="intro">{{data.intro}}</label>
+            <el-link class="name" :underline="false">{{info.username}}</el-link>
+            <label class="intro">{{info.intro}}</label>
         </div>
     </div>
 </template>
 
 <script>
+import avatarGetter from '@/assets/utils/avatarGetter.js'
 export default {
     name:'one-line-desc',
     data(){
         return{
             defaultUrl: "https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png",
             defaultIntro: "没有简介",
+            info:{
+                username:'',
+                intro:'',
+                avatar:'',
+            },
+            avatar:'',
         }
     },
     props:{
@@ -53,31 +60,11 @@ export default {
         }
     },
     computed:{
-        data(){
-            /**通过uid从后端拿数据 */
-            if (this.uid ){
-                let author;
-                this.$axios.get('/user/'+this.uid)
-                .then(successResponse=>{
-                    if (successResponse && successResponse.status==200){
-                        return successResponse.data;
-                    }
-                });
-            }
-            /**直接传值而不是uid */
-            return {
-                    id: this.descContent.id,
-                    username: this.descContent.username,
-                    avatar: this.url,
-                    intro: this.intro,
-            }
-            
-        },
         url(){
-            if (!this.descContent.avatr){
-                return this.defaultUrl;
+            if (this.descContent.avatr!=""){
+                return this.descContent.avatar;
             }
-            return this.descContent.avatar;
+            return this.defaultUrl;
 
         },
         intro(){
@@ -103,8 +90,48 @@ export default {
             }
         }
     },
+    watch:{
+      uid(val,oldVal){
+        console.log('uid changed from ',oldVal,' to ',val);
+        avatarGetter.getAvatar(val).then((url)=>{this.avatar = url;})
+        if (val!=''){
+            this.getInfo(val);
+        }
+      }
+    },
+    methods:{
+      getInfo(id){
+        this.$axios.post('/user',{'id':id})
+            .then(successResponse=>{
+                if (successResponse && successResponse.status==200){
+                    if (successResponse.data.code == 0){
+                        this.info.username = successResponse.data.msg.username;
+                        this.info.intro = successResponse.data.msg.intro;
+                    }
+                }
+            }).catch(failResponse=>{
+                this.$message({
+                  massage:'failResponse.data',
+                  type:'error',
+                  offset:100});
+            });
+      }
+    },
     created:function(){
-        //console.log(this.descContent);
+      if (this.uid!=""){
+        this.getInfo(this.uid);
+      }
+      else{
+        /**直接传值而不是uid */
+          this.info = {
+              id: this.descContent.id,
+              username: this.descContent.username,
+              intro: this.intro,
+              avatar: this.descContent.avatar==''?this.defaultUrl:this.descContent.avatar,
+
+          };
+      }
+      avatarGetter.getAvatar(this.uid).then((url)=>{this.avatar = url;})
     }
 
 }

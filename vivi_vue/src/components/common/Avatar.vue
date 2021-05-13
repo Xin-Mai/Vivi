@@ -1,6 +1,6 @@
 <template>
     <el-dropdown @command="handleCommand">
-        <el-avatar :size="size" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"></el-avatar>
+        <el-avatar :size="size" :src="avatar"></el-avatar>
         <el-dropdown-menu slot="dropdown">
             <div style="text-align:center">{{username}}</div>
             <el-dropdown-item command='user_center'>个人中心</el-dropdown-item>
@@ -11,14 +11,17 @@
 </template>
 
 <script>
+import avatarGetter from '@/assets/utils/avatarGetter.js'
 export default {
     name:'my-avatar',
     data(){
         return{
+            id: this.$store.state.user.id,
             size: "medium",
             botton: "",
             login_botton: "登录",
             logout_botton: "退出",
+            avatar:"https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png",
         }
     },
     created: function(){
@@ -31,6 +34,7 @@ export default {
         else{
             this.botton = this.login_botton;
         }
+        avatarGetter.getAvatar(this.id).then((url)=>{this.avatar = url});
     },
     methods:{
         handleCommand(command){
@@ -63,19 +67,6 @@ export default {
         },
         logout(){
             this.$store.commit('logout');
-            /**console.log(this.$store.state.user.id);
-            this.$axios.get('/logout/'+this.$store.state.user.id)
-            .then(successResponse=>{
-                this.$store.commit('logout');
-                console.log(this.$store.state.user);
-                //this.$router.go(0);
-            })
-            .catch(failResponse=>{
-                this.$notify.error({
-                    titie:'退出失败',
-                    message:'请重新尝试',
-                })
-            })*/
         }
     },
     computed:{

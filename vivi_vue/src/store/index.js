@@ -9,7 +9,8 @@ export default new Vuex.Store({
                 username:window.localStorage.getItem('user'||'[]')==null?'':JSON.parse(window.localStorage.getItem('user'||'[]')).username,
                 id:window.localStorage.getItem('user'||'[]')==null?'':JSON.parse(window.localStorage.getItem('user'||'[]')).id,
             },
-            token:window.localStorage.getItem('token'||'[]')==null?'':JSON.parse(window.localStorage.getItem('token'||'[]')),
+            token:window.localStorage.getItem('token')==null?'':JSON.parse(window.localStorage.getItem('token')),
+            avatar:window.sessionStorage.getItem('vivi_avatar')==null?'':window.sessionStorage.getItem('vivi_avatar'),
         },
         mutations:{
             login(state,info){
@@ -23,6 +24,10 @@ export default new Vuex.Store({
                 }));
                 window.localStorage.setItem('token',JSON.stringify(info.token));
             },
+            setAvatar(state,avatar){
+                //console.log('vuex set avatar\n',avatar);
+                window.sessionStorage.setItem('vivi_avatar',avatar);
+            },
             logout(state){
                 state.user = {
                     username: '',
@@ -32,6 +37,7 @@ export default new Vuex.Store({
                 state.token = "";
                 window.localStorage.removeItem('user');
                 window.localStorage.removeItem('token');
+                window.sessionStorage.removeItem('vivi_avatar');
             }
         }  
 })

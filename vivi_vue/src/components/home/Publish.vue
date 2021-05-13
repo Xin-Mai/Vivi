@@ -47,12 +47,18 @@ export default {
                 if (!this.aid){
                     this.aid = "";
                 }
-                this.$axios.post('article/publish',{
+                this.$axios.post('/article/publish',
+                {
                     title: this.title,
                     content: this.content,
                     tag: this.tag,
-                    aid: this.aid,
-                })
+                    id: this.aid,
+                },
+                {
+                    headers:{
+                        'token': this.$store.state.token,
+                    },
+                },)
                 .then(successResponse=>{
                     if(successResponse && successResponse.status==200){
                         this.$message({
