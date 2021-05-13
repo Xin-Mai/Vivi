@@ -1,4 +1,5 @@
 use crate::tool::error::ErrorMsg;
+use mongodb::options::FindOptions;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -10,6 +11,13 @@ pub struct BasicRsp<T: Serialize> {
 #[derive(Deserialize)]
 pub struct SingleStrReq {
     pub id: String,
+}
+
+pub struct OptionWrapper(pub FindOptions);
+impl Into<Option<FindOptions>> for OptionWrapper {
+    fn into(self) -> Option<FindOptions> {
+        Some(self.0)
+    }
 }
 
 // may fail because of incorrect serialization

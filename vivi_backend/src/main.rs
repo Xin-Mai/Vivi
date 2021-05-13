@@ -20,7 +20,12 @@ lazy_static! {
     static ref NO_TKN_TABLE: HashMap<Operation, LoginHandle> = [
         ((Method::POST, "/login"), user::login as LoginHandle),
         ((Method::POST, "/reg"), user::register),
+        ((Method::POST, "/avatar"), user::download_avatar),
+        ((Method::POST, "/user"), user::find_user),
+        ((Method::POST, "/user/info"), user::user_info),
         ((Method::POST, "/article"), article::get_article),
+        ((Method::POST, "/article/user"), article::user_articles),
+        ((Method::GET, "/article/all"), article::get_articles_all),
     ]
     .iter()
     .cloned()
@@ -34,7 +39,6 @@ lazy_static! {
             (Method::POST, "/user/update/avatar"),
             user::update_user_avatar
         ),
-        ((Method::POST, "/avatar"), user::download_avatar),
         ((Method::POST, "/article/publish"), article::publish),
         ((Method::POST, "/article/delete"), article::delete_article),
         ((Method::POST, "/article/like"), article::like),
@@ -81,6 +85,7 @@ async fn entry(req: Request<Body>) -> Result<Response<Body>, Infallible> {
         Ok(data) => data,
         Err(_) => {
             *response.status_mut() = StatusCode::BAD_REQUEST;
+            *response.body_mut() = Body::from("Couldn't parse body.");
             return Ok(response);
         }
     }
@@ -95,11 +100,17 @@ async fn entry(req: Request<Body>) -> Result<Response<Body>, Infallible> {
     match retrieve_id_from_token(&parts.headers) {
         Some(id) => match FUNCTION_TABLE.get(key) {
             Some(func) => process_result(func(data, id), &mut response),
-            None => *response.status_mut() = StatusCode::BAD_REQUEST,
+            None => {
+                *response.status_mut() = StatusCode::BAD_REQUEST;
+                *response.body_mut() = Body::from(format!("Function {:?} not found.", key));
+            },
         },
         None => match NO_TKN_TABLE.get(key) {
             Some(func) => process_result(func(data), &mut response),
-            None => *response.status_mut() = StatusCode::BAD_REQUEST,
+            None => {
+                *response.status_mut() = StatusCode::BAD_REQUEST;
+                *response.body_mut() = Body::from(format!("Function {:?} not found.", key));
+            },
         },
     }
     println!("Pcocess request from {} {}", &parts.uri, response.status());

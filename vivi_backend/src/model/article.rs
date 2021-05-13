@@ -1,14 +1,18 @@
 use super::basic;
 use super::db;
 use crate::tool::error::ErrorMsg;
-use chrono::prelude::Utc;
+use chrono::prelude::Local;
 use mongodb::{
-    bson::serde_helpers::chrono_datetime_as_bson_datetime,
     bson::{doc, oid},
+    options::FindOptions,
     options::UpdateModifications,
 };
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
+
+const USER_ARTICLE_LIMIT: i64 = 10;
+const ALL_ARTICLE_LIMIT: i64 = 10;
+const MAX_PREVIEW_SIZE: usize = 200;
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -19,9 +23,8 @@ pub struct Article {
     content: String,
     tag: String,
     uid: String,
-    #[serde(with = "chrono_datetime_as_bson_datetime")]
-    publish_date: chrono::DateTime<chrono::Utc>,
-    read_num: usize,
+    publish_date: String,
+    read_num: i64,
     like_list: HashSet<String>,
 }
 
@@ -40,11 +43,21 @@ struct GetArticleRsp {
     content: String,
     tag: String,
     uid: String,
-    #[serde(with = "chrono_datetime_as_bson_datetime")]
-    publish_date: chrono::DateTime<chrono::Utc>,
+    publish_date: String,
     read_num: usize,
     like_num: usize,
     like: bool,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct ArticlePreview {
+    id: String,
+    title: String,
+    content: String,
+    uid: String,
+    read_num: usize,
+    like_num: usize,
 }
 
 impl Article {
@@ -59,7 +72,7 @@ impl Article {
             content: req.content,
             tag: req.tag,
             uid: uid.clone(),
-            publish_date: Utc::now(),
+            publish_date: Local::now().to_rfc3339(),
             read_num: 0,
             like_list: HashSet::new(),
         }
@@ -72,7 +85,7 @@ impl Into<UpdateModifications> for PublishReq {
             "title": self.title,
             "content": self.content,
             "tag": self.tag,
-            "date": Utc::now(),
+            "date": Local::now().to_rfc3339(),
         }})
     }
 }
@@ -87,9 +100,23 @@ impl Into<GetArticleRsp> for Article {
             tag: self.tag,
             uid: self.uid,
             publish_date: self.publish_date,
-            read_num: self.read_num,
+            read_num: self.read_num as usize,
             like_num: set.len(),
             like: i_like,
+        }
+    }
+}
+
+impl Into<ArticlePreview> for Article {
+    fn into(mut self) -> ArticlePreview {
+        self.content.truncate(MAX_PREVIEW_SIZE);
+        ArticlePreview {
+            id: self.id,
+            title: self.title,
+            content: self.content,
+            uid: self.uid,
+            read_num: self.read_num as usize,
+            like_num: self.like_list.len(),
         }
     }
 }
@@ -100,14 +127,16 @@ pub fn publish(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
     let collection = db::article_collection();
     if aid.len() == 0 {
         let article = Article::from_publish(req, &id);
+        let aid = article.id.clone();
         collection.insert_one(article, None)?;
+        basic::rsp_ok(aid)
     } else {
         let res = collection.update_one(doc! {"_id": &aid}, req, None)?;
         if res.modified_count != 1 {
             return Err(ErrorMsg::unknown());
         }
+        basic::rsp_ok("")
     }
-    Ok(vec![])
 }
 
 pub fn get_article(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
@@ -119,6 +148,26 @@ pub fn get_article(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
             || basic::rsp_err("Article not found"),
             |article| basic::rsp_ok::<GetArticleRsp>(article.into()),
         )
+}
+
+pub fn get_articles_all(_: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
+    find_article(None, ALL_ARTICLE_LIMIT)
+}
+
+pub fn user_articles(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
+    let req: basic::SingleStrReq = serde_json::from_slice(&data)?;
+    find_article(Some(req.id), USER_ARTICLE_LIMIT)
+}
+
+fn find_article(uid: Option<String>, count: i64) -> Result<Vec<u8>, ErrorMsg> {
+    let filter = uid.map(|id| doc! {"uid": id});
+    let options: FindOptions = FindOptions::builder().limit(count).build();
+    let cursor = db::article_collection().find(filter, basic::OptionWrapper(options))?;
+    let mut res: Vec<ArticlePreview> = Vec::new();
+    for c in cursor {
+        res.push(c?.into());
+    }
+    basic::rsp_ok(res)
 }
 
 pub fn like(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
@@ -146,7 +195,7 @@ pub fn like(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
                 if res.modified_count != 1 {
                     Err(ErrorMsg::unknown())
                 } else {
-                    Ok(vec![])
+                    basic::rsp_ok("")
                 }
             },
         )
@@ -154,10 +203,11 @@ pub fn like(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
 
 pub fn delete_article(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
     let req: basic::SingleStrReq = serde_json::from_slice(&data)?;
-    let res = db::article_collection().delete_one(doc! {"_id": req.id, "uid": id}, None)?;
+    let res = db::article_collection().delete_one(doc! {"_id": &req.id, "uid": id}, None)?;
     if res.deleted_count != 1 {
         basic::rsp_err("Delete failed")
     } else {
-        Ok(vec![])
+        db::comment_collection().delete_many(doc! {"aid": req.id}, None)?;
+        basic::rsp_ok("")
     }
 }

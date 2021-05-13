@@ -1,15 +1,9 @@
 use super::basic;
 use super::db;
 use crate::tool::error::ErrorMsg;
-use chrono::prelude::Utc;
-use mongodb::{
-    bson::serde_helpers::chrono_datetime_as_bson_datetime,
-    bson::{doc, oid},
-    options::FindOptions,
-    // options::UpdateModifications,
-};
+use chrono::prelude::Local;
+use mongodb::bson::{doc, oid};
 use serde::{Deserialize, Serialize};
-// use std::collections::HashSet;
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -20,8 +14,7 @@ pub struct Comment {
     uid: String,
     quote: String,
     content: String,
-    #[serde(with = "chrono_datetime_as_bson_datetime")]
-    publish_date: chrono::DateTime<chrono::Utc>,
+    publish_date: String,
 }
 
 #[derive(Deserialize)]
@@ -35,8 +28,7 @@ struct CommentPublishReq {
 #[serde(rename_all = "camelCase")]
 struct CommentPublishRsp {
     cid: String,
-    #[serde(with = "chrono_datetime_as_bson_datetime")]
-    publish_date: chrono::DateTime<chrono::Utc>,
+    publish_date: String,
 }
 
 impl Comment {
@@ -47,15 +39,8 @@ impl Comment {
             uid: uid.clone(),
             quote: req.quote,
             content: req.content,
-            publish_date: Utc::now(),
+            publish_date: Local::now().to_rfc3339(),
         }
-    }
-}
-
-struct OptionWrapper(FindOptions);
-impl Into<Option<FindOptions>> for OptionWrapper {
-    fn into(self) -> Option<FindOptions> {
-        Some(self.0)
     }
 }
 
@@ -87,28 +72,28 @@ pub fn get_comments(data: Vec<u8>, _: String) -> Result<Vec<u8>, ErrorMsg> {
 }
 
 // pub fn delete_comment(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
-    // let req: basic::SingleStrReq = serde_json::from_slice(&data)?;
-    // let cid = req.id;
+// let req: basic::SingleStrReq = serde_json::from_slice(&data)?;
+// let cid = req.id;
 
-    // let collection = db::comment_collection();
-    // let set: HashSet<&String> = HashSet::new();
-    // set.insert(&cid);
-    // let arr: Vec<&String> = Vec::new();
+// let collection = db::comment_collection();
+// let set: HashSet<&String> = HashSet::new();
+// set.insert(&cid);
+// let arr: Vec<&String> = Vec::new();
 
-    // let options = FindOptions::builder().projection(doc! {
-    //     "quote": 1,
-    // }).build();
+// let options = FindOptions::builder().projection(doc! {
+//     "quote": 1,
+// }).build();
 
-    // loop {
-    //     let cid = arr.pop();
-        
-    //     let cursor = collection.find(
-    //         doc! {
-    //             "quote": cid,
-    //         },
-    //         OptionWrapper(options),
-    //     )?;
-    //     for c in cursor {}
-    // }
-    // Ok(vec![])
+// loop {
+//     let cid = arr.pop();
+
+//     let cursor = collection.find(
+//         doc! {
+//             "quote": cid,
+//         },
+//         OptionWrapper(options),
+//     )?;
+//     for c in cursor {}
+// }
+// Ok(vec![])
 // }

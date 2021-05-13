@@ -45,6 +45,21 @@ struct UserInfoUpdateReq {
     intro: String,
 }
 
+#[derive(Serialize)]
+struct FindUserRsp {
+    username: String,
+    email: String,
+    intro: String,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct UserInfoRsp {
+    read_num: i64,
+    like_num: i64,
+    count: i64,
+}
+
 impl User {
     fn from_reg(req: RegisterReq) -> Self {
         User {
@@ -78,6 +93,16 @@ impl Into<UpdateModifications> for UserInfoUpdateReq {
             "password": self.password,
             "intro": self.intro,
         }})
+    }
+}
+
+impl From<User> for FindUserRsp {
+    fn from(user: User) -> FindUserRsp {
+        FindUserRsp {
+            username: user.username,
+            email: user.email,
+            intro: user.intro,
+        }
     }
 }
 
@@ -125,13 +150,53 @@ pub fn register(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
     Ok(basic::rsp_ok(&rsp)?)
 }
 
+pub fn find_user(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
+    let req: basic::SingleStrReq = serde_json::from_slice(&data)?;
+    let uid = req.id;
+    db::user_collection()
+        .find_one(doc! {"_id": uid}, None)?
+        .map_or_else(
+            || basic::rsp_err("User not found"),
+            |user| basic::rsp_ok(FindUserRsp::from(user)),
+        )
+}
+
+pub fn user_info(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
+    let req: basic::SingleStrReq = serde_json::from_slice(&data)?;
+    let uid = req.id;
+    let pipeline = vec![
+        doc! {"$match": {"uid": &uid}},
+        doc! {"$group": { "_id": "$uid",
+             "reads": { "$sum": "$readNum" },
+            "likes": { "$sum": { "$size": "$likeList"} },
+            "counts": { "$sum": 1 },
+        }},
+    ];
+    let cursor = db::article_collection().aggregate(pipeline, None)?;
+    let mut like_num = 0;
+    let mut read_num = 0;
+    let mut count = 0;
+    for c in cursor {
+        let _ = c.map(|c| {
+            count += c.get_i32("counts").unwrap_or_default() as i64;
+            like_num += c.get_i32("likes").unwrap_or_default() as i64;
+            read_num += c.get_i64("reads").unwrap_or_default();
+        });
+    }
+    basic::rsp_ok(UserInfoRsp {
+        like_num: like_num,
+        read_num: read_num,
+        count: count,
+    })
+}
+
 pub fn update_user_info(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
     let req: UserInfoUpdateReq = serde_json::from_slice(&data)?;
     let res = db::user_collection().update_one(doc! {"_id": id}, req, None)?;
     if res.modified_count == 1 {
-        Ok(vec![])
+        basic::rsp_ok("")
     } else {
-        Err(ErrorMsg::unknown())
+        basic::rsp_err("User not found")
     }
 }
 
@@ -144,10 +209,10 @@ pub fn update_user_avatar(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg
     }
     let path = format!("/root/avatar/{}", id);
     std::fs::write(path, data)?;
-    Ok(vec![])
+    basic::rsp_ok("")
 }
 
-pub fn download_avatar(data: Vec<u8>, _: String) -> Result<Vec<u8>, ErrorMsg> {
+pub fn download_avatar(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
     let req: basic::SingleStrReq = serde_json::from_slice(&data)?;
     let path = format!("/root/avatar/{}", req.id);
     if std::fs::metadata(&path).is_err() {
