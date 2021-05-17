@@ -188,7 +188,7 @@ pub fn like(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
                 let res = collection.update_one(
                     doc! {"_id": &article.id},
                     doc! {"$set": {
-                        "like_list": set.into_iter().collect::<Vec<String>>(),
+                        "likeList": set.into_iter().collect::<Vec<String>>(),
                     }},
                     None,
                 )?;
