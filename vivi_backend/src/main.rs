@@ -26,6 +26,7 @@ lazy_static! {
         ((Method::POST, "/article"), article::get_article),
         ((Method::POST, "/article/user"), article::user_articles),
         ((Method::GET, "/article/all"), article::get_articles_all),
+        ((Method::POST, "/comment"), comment::get_comments),
     ]
     .iter()
     .cloned()
@@ -46,7 +47,6 @@ lazy_static! {
         ((Method::POST, "/article/publish"), article::publish),
         ((Method::POST, "/article/delete"), article::delete_article),
         ((Method::POST, "/article/like"), article::like),
-        ((Method::POST, "/comment"), comment::get_comments),
         ((Method::POST, "/comment/publish"), comment::publish),
     ]
     .iter()
