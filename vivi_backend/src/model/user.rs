@@ -41,8 +41,15 @@ struct LoginRsp {
 #[derive(Deserialize)]
 struct UserInfoUpdateReq {
     username: String,
-    password: String,
     intro: String,
+    email: String,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct UserPwdUpdateRed {
+    old_pwd: String,
+    new_pwd: String,
 }
 
 #[derive(Serialize)]
@@ -90,7 +97,7 @@ impl Into<UpdateModifications> for UserInfoUpdateReq {
     fn into(self) -> UpdateModifications {
         UpdateModifications::Document(doc! { "$set": {
             "username": self.username,
-            "password": self.password,
+            "email": self.email,
             "intro": self.intro,
         }})
     }
@@ -197,6 +204,20 @@ pub fn update_user_info(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> 
         basic::rsp_ok("")
     } else {
         basic::rsp_err("User not found")
+    }
+}
+
+pub fn update_user_pwd(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
+    let req: UserPwdUpdateRed = serde_json::from_slice(&data)?;
+    let res = db::user_collection().update_one(
+        doc! {"_id": id, "password": req.old_pwd},
+        doc! {"$set": {"password": req.new_pwd} },
+        None,
+    )?;
+    if res.modified_count == 1 {
+        basic::rsp_ok("")
+    } else {
+        basic::rsp_err("Username & password not match!")
     }
 }
 

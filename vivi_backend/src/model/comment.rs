@@ -55,7 +55,7 @@ pub fn publish(data: Vec<u8>, id: String) -> Result<Vec<u8>, ErrorMsg> {
     basic::rsp_ok(rsp)
 }
 
-pub fn get_comments(data: Vec<u8>, _: String) -> Result<Vec<u8>, ErrorMsg> {
+pub fn get_comments(data: Vec<u8>) -> Result<Vec<u8>, ErrorMsg> {
     let req: basic::SingleStrReq = serde_json::from_slice(&data)?;
     let aid = req.id;
     let cursor = db::comment_collection().find(
