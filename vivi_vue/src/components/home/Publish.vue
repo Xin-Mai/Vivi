@@ -61,12 +61,18 @@ export default {
                 },)
                 .then(successResponse=>{
                     if(successResponse && successResponse.status==200){
-                        this.$message({
+                        if (successResponse.data.code == 0){
+                            this.$message({
                             message:'发表成功',
                             type: 'success',
                             offset:100,
-                        });
-                        this.$router.push('/article/'+successResponse.data);
+                            });
+                            if (successResponse.data.msg != ''){
+                                this.$router.push('/article/'+successResponse.data.msg);
+                            }else{
+                                this.$router.push('/article/'+this.aid);
+                            }
+                        }
                     }
                 }).catch(failResponse=>{
                     this.$message({
@@ -84,6 +90,16 @@ export default {
                     offset:100,
                 });
             }
+        }
+    },
+    created:function(){
+        console.log(this.$route);
+        if (this.$route.params){
+            let params = this.$route.params;
+            console.log(params);
+            this.title = this.$route.params.title;
+            this.content = this.$route.params.content;
+            this.aid = this.$route.params.aid;
         }
     }
 }

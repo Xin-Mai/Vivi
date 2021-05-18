@@ -98,13 +98,14 @@ export default {
 }
 .middle{
     height: 80%;
-    width: 100%;
+    margin: 0 5px 0 5px;
+    /*width: 100%;*/
     overflow: hidden;
 }
 .animation-container{
     width: 100%;
     height: 100%;
-    transform: translateY(88px);
+    transform: translateY(84px);
     transition: transform 3s;
     transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
 }

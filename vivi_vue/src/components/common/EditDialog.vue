@@ -54,6 +54,7 @@ export default {
         username:this.$store.state.user.username,
         avatar:'',
         intro:'',
+        email:'',
       },
       avatarList: [],
       dataUrl: "hhh",
@@ -70,6 +71,9 @@ export default {
     }
   },
   methods: {
+    setVisiblity(val){
+            this.dialogVisible = val;
+    },
     openUpload() {
       this.uploadVisible = true;
     },
@@ -129,7 +133,7 @@ export default {
       //console.log(this.$refs.infoForm);
       this.$refs.infoForm.updateInfo('infoForm');
       this.dialogVisible = false;
-      this.$router.go(0);
+      //this.$router.go(0);
     },
   },
   computed: {
@@ -145,12 +149,20 @@ export default {
   watch:{
     intro(value,oldValue){
       this.updateForm.intro = value;
-      //console.log("intro change from"+oldValue+'to'+value);
+      console.log("intro change from"+oldValue+'to'+value);
+    },
+    email(val, oldVal){
+      this.updateForm.email = val;
+      console.log("email change from"+oldVal+'to'+val);
     }
   },
   created:function(){
     avatarGetter.getAvatar(this.uid).then((url)=>{this.updateForm.avatar = url;});
-    console.log(this.updateForm);
+    //console.log(this.updateForm);
+  },
+  mounted:function(){
+    this.updateForm.intro = this.intro;
+    this.updateForm.email = this.email;
   }
 };
 </script>

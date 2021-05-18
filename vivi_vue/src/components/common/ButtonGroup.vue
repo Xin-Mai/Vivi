@@ -24,7 +24,8 @@ export default {
     name:'button-group',
     data(){
         return{
-            is_like:0,
+            is_like:this.ILike,
+            realLike: this.likeNum,
             unlike_icon:"iconfont icon-aixin",
             liked_icon:"iconfont icon-aixin1",
             aid: this.$route.params.id,
@@ -54,17 +55,41 @@ export default {
     },
     methods:{
         like(){
-            this.is_like = 1-this.is_like;
-            if (this.is_like == 0){
-                document.getElementById("like").blur();
+            if (this.$store.state.user.id == ''){
+                this.$message({
+                    message:'请先登录',
+                    offset: 100,
+                });
+            }else{
+                this.is_like = !this.is_like;
+                if (this.is_like){
+                    this.realLike += 1;
+                    
+                }else{
+                    this.realLike -= 1;
+                    document.getElementById("like").blur();
+                }
             }
             /**向后端发请求 */
-            this.$axios.post('/article/like',this.aid);
+            //this.$axios.post('/article/like',this.aid);
         },
         scrollToComment(){
             //console.log('click scroll');
             document.getElementById("comment").blur();
             window.scrollTo(this.commentX,this.commentY);
+        },
+        likePost(){
+            if (this.ILike != this.is_like){
+                this.$axios.post('/article/like',{
+                    id: this.aid,
+                },{
+                    headers:{
+                        token: this.$store.state.token,
+                    }
+                }).catch(failRsp=>{
+
+                })
+            }
         }
     },
     computed:{
@@ -79,17 +104,30 @@ export default {
                 '--comment-num': this.commentNum,
             }
         },
-        realLike(){
-            return this.likeNum+this.is_like;
+    },
+    watch:{
+        ILike(val, oldVal){
+            console.log('ILike changed from ',oldVal,' to ',val);
+            this.is_like = val;
+        },
+        likeNum(val, oldVal){
+            console.log('likeNum changed from ',oldVal,' to ',val);
+            this.realLike = val;
         }
     },
     created:function(){
+        
+    },
+    mounted:function(){
         if (this.ILike){
             this.is_like = 1;
         }
         else{
             this.is_like = 0;
         }
+    },
+    beforeDestroy:function(){
+        this.likePost();
     }
     
 }

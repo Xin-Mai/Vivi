@@ -45,6 +45,8 @@ export default {
     name:'comments',
     data(){
         return{
+            aid: this.$route.params.id,
+            commentList:[],
             input:'',
             passagerId: this.$store.state.user.id,
             showHint: false,
@@ -54,16 +56,12 @@ export default {
         }
     },
     props:{
-        commentList:{
+        comments:{
             type: Array,
             default:function(){
                 return []
             }
         },
-        aid:{
-            type: String,
-            default: "",
-        }
     },
     computed:{
         data(){
@@ -158,6 +156,27 @@ export default {
                 this.commentList.push(comment);
             }
 
+        }
+    },
+    mounted:function(){
+        if (this.comments.length!=0){
+            this.commentList = this.comments;
+        }else{
+            this.$axios.post('/comment',{
+                id: this.aid
+            }).then(successResponse=>{
+                if (successResponse && successResponse.status == 200){
+                    if (successResponse.data.code == 0){
+                        this.commentList = successResponse.data.msg;
+                    }
+                }
+            }).catch(failResponse=>{
+                this.$message({
+                    message: '评论加载失败',
+                    type: 'error',
+                    offset: 100,
+                })
+            })
         }
     }
 }

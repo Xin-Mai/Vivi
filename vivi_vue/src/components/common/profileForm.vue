@@ -14,7 +14,7 @@
             </el-form-item>
             <el-collapse-transition>
                 <div v-if="showTrans">
-                    <el-form-item label="密码" class="left-form-item" prop="old_password">
+                    <el-form-item label="密码" class="left-form-item" prop="password">
                         <el-input show-password placeholder="请输入账号密码" v-model="editForm.old_password"></el-input>
                     </el-form-item>
                     <el-form-item label="新密码" prop="password">
@@ -79,8 +79,8 @@ export default {
                 email:'',
             },
             editForm:{
-                intro: this.info.intro,
-                avatar: this.info.avatar,
+                intro: '',
+                avatar: '',
                 old_password:'',
             },
             /*表单规则 */
@@ -174,9 +174,10 @@ export default {
             if(valid){
               alert('submit');
               let result = {
-                username: this.infoForm.username,
                 intro: this.editForm.intro,
-                password: '123',
+                email: this.infoForm.email,
+                username: this.infoForm.username,
+                
               };
               this.$axios.post('/user/update/info',result,{
                 headers:{
@@ -185,16 +186,76 @@ export default {
               }).then((successResponse)=>{
                 if (successResponse && successResponse.status == 200){
                   if (successResponse.data.code == 0){
-                    alert('success');
+                    this.$message({
+                        message:'修改成功喵~',
+                        type:'success',
+                        offset:100,
+                    })
+                    //alert('success');
+                    if ( !this.showTrans){
+                        this.$emit('setVisiblity',false);
+                        this.$router.go(0);
+                    }
                   }
                   else{
                     this.$message.error(successResponse.data.msg);
                   }
                 }
               }).catch((failResponse)=>{})
+              if (this.showTrans){
+                  this.updatePassword();
+              }
             }
           })
+        },
+        /**修改密码 */
+        updatePassword(){
+            this.$axios.post('/user/update/pwd',{
+                oldPwd: this.editForm.old_password,
+                newPwd: this.infoForm.password,
+            },{
+                headers:{
+                    token:this.$store.state.token,
+                }
+            }).then((successResponse)=>{
+                if (successResponse && successResponse.status == 200){
+                    if(successResponse.data.code == 0){
+                        this.$message({
+                            message:'密码修改成功',
+                            type:'success',
+                            offset:100,
+                        });
+                        this.infoForm.password = '';
+                        this.infoForm.check = '';
+                        this.editForm.old_password = '';
+                        this.$emit('setVisiblity',false);
+                        this.$router.go(0);
+                    }else{
+                        this.$message({
+                            message:successResponse.data.msg,
+                            type:'error',
+                            offset:100,
+                        })
+                    }
+                }
+            }).catch((failResponse)=>{})
         }
+    },
+    watch:{
+        info:{
+            handler(val,oldVal){
+                this.editForm.intro = this.val.intro;
+                this.editForm.avatar = this.val.avatar;
+                this.infoForm.email = this.val.email;
+                console.log('watch info change to ',val);
+            },
+            deep: true,
+        }
+    },
+    mounted:function(){
+        this.editForm.intro = this.info.intro;
+        this.editForm.avatar = this.info.avatar;
+        this.infoForm.email = this.info.email;
     }
 }
 </script>

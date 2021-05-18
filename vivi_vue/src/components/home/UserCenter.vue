@@ -83,6 +83,7 @@ export default {
             articles:[],
             user:{
                 id: this.$route.params.id,
+                email:'',
                 username:'',
                 intro:'',
                 avatar:'',

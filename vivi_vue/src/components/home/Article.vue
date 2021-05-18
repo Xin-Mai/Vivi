@@ -5,7 +5,7 @@
                 <one-line-desc :size="'big'" :uid="article.uid"></one-line-desc>
                 <div style="margin-top:15px;text-align:left">
                     <el-button class="button" round type="primary" 
-                    :disabled="readerId == article.uid?true:false"
+                    :disabled="is_mine"
                     size="small" icon="el-icon-plus" 
                     v-on:click="followChange">关注</el-button>
                     <el-button class="button" round size="small" icon="el-icon-message">私信</el-button>
@@ -19,10 +19,14 @@
                     <label id="read-num">{{article.readNum}}</label>
                 </div>
             </div>
+            <div v-if="is_mine">
+                <el-button type="text" icon="el-icon-edit" v-on:click="updateArticle">修改</el-button>
+                <el-button type="text" icon="el-icon-delete" style="color:gray" v-on:click="deleteArticle">删除</el-button>
+            </div>
         </div>
         <div class="content">{{article.content}}</div>
-        <comments  id="commentArea" :aid="article.aid" :commentList="commentList"></comments>
-        <button-group class="buttons" :ILike="article.like"
+        <comments  id="commentArea" :commentList="commentList"></comments>
+        <button-group class="buttons" :ILike="article.like" :likeNum="article.likeNum"
 		:commentX="commentX" :commentY="commentY" :commentNum="commentList.length"></button-group>
     </div>
 </template>
@@ -38,7 +42,7 @@ export default {
     data(){
         return{
             article:{
-                aid: '',
+                aid:this.$route.params.id,
                 title:'this is a title',
                 content:'this is content\ntest',
                 publishDate: new Date().toString(),
@@ -86,15 +90,81 @@ export default {
                 item.repliList = replyMap.get(item.cid);
             }
             return commentList;
+        },
+        /**修改文章 */
+        updateArticle(){
+            console.log(this.article);
+            this.$router.push({
+                name: 'Publish',
+                path: '/publish',
+                params: {
+                    title: this.article.title,
+                    content: this.article.content,
+                    aid: this.article.aid,
+                },
+            })
+        },
+        /**删除文章 */
+        deleteArticle(){
+            if (!this.article.aid){
+                this.article.aid = window.location.href.replace(/.*article\//g,'');
+            }
+            //console.log(this.article.aid);
+            this.$confirm('此操作将永久删除该文章, 是否继续?', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning'
+                }).then(() => {
+                    this.$axios.post('/article/delete',{
+                        id: this.article.aid,
+                    },{
+                        headers:{
+                            token: this.$store.state.token
+                        }
+                    }).then(successResponse=>{
+                        if (successResponse && successResponse.status == 200){
+                            if (successResponse.data.code == 0){
+                                this.$message({
+                                    type: 'success',
+                                    message: '删除成功!'
+                                });
+                                this.$router.push('/usercenter/'+this.article.uid);
+                            }else{
+                                this.$message({
+                                    type: 'error',
+                                    message: successResponse.data.msg,
+                                });
+                            }
+                        }
+                    }).catch(failResponse=>{
+                        this.$message({
+                                    type: 'error',
+                                    message: '删除失败，请稍后再试',
+                                });
+                    });
+                }).catch(() => {
+                    this.$message({
+                    type: 'info',
+                    message: '已取消删除'
+                    });          
+            });
+        }
+    },
+    watch:{
+        article:{
+            handler(val,oldVal){
+                console.log('article changed from ',oldVal,' to ',val);
+            },
+            deep: true,
         }
     },
     created:function(){
-        this.article.aid = this.$route.params.id;
-        
+        let aid = this.article.aid;
         this.$axios.post('/article',{'id':this.article.aid})
         .then(successResponse=>{
             if (successResponse && successResponse.status==200){
                 this.article = successResponse.data.msg;
+                this.article.aid = aid;
             }
         })
         .catch(failResponse=>{
@@ -103,7 +173,7 @@ export default {
                 type:'error',
                 offset:100,
             });
-        })
+        });
         /**获取评论区内容 
         this.$axios.get('/comment/'+this.article.aid)
         .then(successResponse=>{
@@ -121,10 +191,11 @@ export default {
         let commentArea = document.getElementById('commentArea');
         this.commentX = commentArea.getBoundingClientRect().x;
         this.commentY = commentArea.getBoundingClientRect().y;
-        //console.log(commentArea.getBoundingClientRect().x);
     },
     computed:{
-        
+        is_mine(){
+            return this.$store.state.user.id==this.article.uid;
+        }
     }
 }
 </script>
