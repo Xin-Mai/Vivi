@@ -1,5 +1,5 @@
 <template>
-    <ul class="button-group" :style="getNum">
+    <ul class="button-group" >
         <li>
             <div class="radius" v-if="is_like==1"></div>
             <el-button id="like" v-on:click="like" 
@@ -82,10 +82,6 @@ export default {
             if (this.ILike != this.is_like){
                 this.$axios.post('/article/like',{
                     id: this.aid,
-                },{
-                    headers:{
-                        token: this.$store.state.token,
-                    }
                 }).catch(failRsp=>{
 
                 })
@@ -98,12 +94,6 @@ export default {
                 return "color:red;"
             }
         },
-        getNum(){
-            return{
-                '--like-num': this.likeNuum,
-                '--comment-num': this.commentNum,
-            }
-        },
     },
     watch:{
         ILike(val, oldVal){
@@ -111,12 +101,12 @@ export default {
             this.is_like = val;
         },
         likeNum(val, oldVal){
-            console.log('likeNum changed from ',oldVal,' to ',val);
+            console.log('LikeNum changed from ',oldVal,' to ',val);
             this.realLike = val;
-        }
+        },
     },
     created:function(){
-        
+        //console.log('commentNum',this.commentNum);
     },
     mounted:function(){
         if (this.ILike){

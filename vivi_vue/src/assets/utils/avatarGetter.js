@@ -13,7 +13,7 @@ export default{
         //console.log(store.state.avatar);
         //sessionStrorage中有存
         if (uid == store.state.user.id && store.state.avatar){
-            console.log('get store avata');      
+            //console.log('get store avata');      
             return store.state.avatar;
         }
         else{

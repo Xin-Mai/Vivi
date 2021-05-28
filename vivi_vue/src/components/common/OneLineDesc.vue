@@ -31,6 +31,10 @@ export default {
             type: String,
             default: "",
         },
+        publishDate:{
+            type: String,
+            default: "",
+        },
         descContent:{
             type: Object,
             default:function(){
@@ -41,6 +45,10 @@ export default {
                     avatar: this.defaultUrl,
                 }
             }
+        },
+        type:{
+            type: String,
+            default: 'normal',
         },
         size:{
             type:String,
@@ -60,19 +68,6 @@ export default {
         }
     },
     computed:{
-        url(){
-            if (this.descContent.avatr!=""){
-                return this.descContent.avatar;
-            }
-            return this.defaultUrl;
-
-        },
-        intro(){
-            if(!this.descContent.intro){
-                return this.defaultIntro;
-            }
-            return this.descContent.intro;
-        },
         styleVar(){
             //console.log(this.size);
             let fontSize = this.font_size;
@@ -106,7 +101,11 @@ export default {
                 if (successResponse && successResponse.status==200){
                     if (successResponse.data.code == 0){
                         this.info.username = successResponse.data.msg.username;
-                        this.info.intro = successResponse.data.msg.intro;
+                        if (this.type == "comment"){
+                            this.info.intro = this.publishDate;
+                        }else{
+                            this.info.intro = successResponse.data.msg.intro;
+                        }
                     }
                 }
             }).catch(failResponse=>{

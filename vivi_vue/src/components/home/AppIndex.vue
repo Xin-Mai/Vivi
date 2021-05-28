@@ -3,7 +3,8 @@
         <show-card></show-card>
         <div class="main-container">
             <div class="content-list">
-                <item-card v-for="i in contentList.length" v-bind:key="i"></item-card>
+                <item-card v-for="i in contentList.length" v-bind:key="i"
+                v-bind="contentList[i-1]"></item-card>
             </div>
             <div class="side-bar">
                 <div class="list">
@@ -30,7 +31,7 @@ export default {
     name:'AppIndex',
     data(){
         return{
-            contentList:[{a:1},{a:1},{a:1},{a:1},{a:1},{},{},{},{},{}],
+            contentList:[{a:1},],
             recommendList:[{a:1}],
         }
     },
@@ -41,6 +42,28 @@ export default {
         },
     created:function(){
         
+    },
+    mounted:function(){
+        this.$axios.get('/article/all')
+        .then(successResponse=>{
+            if (successResponse && successResponse.status == 200){
+                if (successResponse.data.code == 0){
+                    this.contentList = successResponse.data.msg;
+                }else{
+                    this.$message({
+                        message: '加载失败，请稍后再试',
+                        type:'error',
+                        offset: 100,
+                    })
+                }
+            }
+        }).catch(failResponse=>{
+            this.$message({
+                message: failResponse.data,
+                type:'error',
+                offset: 100,
+            })
+        })
     }
 }
 </script>
@@ -61,7 +84,8 @@ export default {
     flex-shrink: 1;
 }
 .side-bar{
-    margin:20px 10px;
+    float: right;
+    margin-right:10%;
     width: 240px;
 }
 .list{

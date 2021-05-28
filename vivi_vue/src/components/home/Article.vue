@@ -1,7 +1,11 @@
 <template>
     <div class="container">
-        <div class="header">
-            <el-card class="author-card" shadow="hover">
+        <article-header style="z-index:-1" 
+        :publishDate="article.publishDate" 
+        :readNum="article.readNum"
+        :title="article.title"></article-header>
+        <div class="content">
+            <el-card class="author-card" shadow="hover" >
                 <one-line-desc :size="'big'" :uid="article.uid"></one-line-desc>
                 <div style="margin-top:15px;text-align:left">
                     <el-button class="button" round type="primary" 
@@ -11,33 +15,22 @@
                     <el-button class="button" round size="small" icon="el-icon-message">私信</el-button>
                 </div>
             </el-card>
-            <div class="title-header">
-                <h1 class="title">{{article.title}}</h1>
-                <div class="detail">
-                    <label id="publish-date">{{article.publishDate}}</label>
-                    <i class="iconfont icon-yanjing"></i>
-                    <label id="read-num">{{article.readNum}}</label>
-                </div>
-            </div>
-            <div v-if="is_mine">
-                <el-button type="text" icon="el-icon-edit" v-on:click="updateArticle">修改</el-button>
-                <el-button type="text" icon="el-icon-delete" style="color:gray" v-on:click="deleteArticle">删除</el-button>
-            </div>
-        </div>
-        <div class="content">{{article.content}}</div>
-        <comments  id="commentArea" :commentList="commentList"></comments>
+            {{article.content}}</div>
+            <div class="comment"><comments  id="commentArea"></comments></div>
         <button-group class="buttons" :ILike="article.like" :likeNum="article.likeNum"
-		:commentX="commentX" :commentY="commentY" :commentNum="commentList.length"></button-group>
+		:commentX="commentX" :commentY="commentY" :commentNum="commentNum"></button-group>
     </div>
 </template>
 
 <script>
+import ArticleHeader from '../common/articleHeader.vue'
 import ButtonGroup from '../common/ButtonGroup.vue';
 import Comments from '../common/Comments.vue';
 import OneLineDesc from '../common/OneLineDesc.vue';
 import followAndMessage from '@/assets/utils/followAndMessage.js'
+import dateFilter  from '@/assets/utils/dateFilter.js'
 export default {
-  components: { ButtonGroup, OneLineDesc, Comments },
+  components: { ButtonGroup, OneLineDesc, Comments, ArticleHeader },
     name:'Article',
     data(){
         return{
@@ -59,6 +52,7 @@ export default {
                     {content:'wwwww',cid:'e'},
                     {content:'666',cid:'f'}*/
                     ],
+            commentNum: 0,
             readerId: this.$store.state.user.id,
             commentX: 0,
             commentY: 0,
@@ -148,6 +142,11 @@ export default {
                     message: '已取消删除'
                     });          
             });
+        },
+        /**获取评论数 */
+        setCommentNum(val){
+            console.log(val);
+            this.commentNum = val;
         }
     },
     watch:{
@@ -174,16 +173,6 @@ export default {
                 offset:100,
             });
         });
-        /**获取评论区内容 
-        this.$axios.get('/comment/'+this.article.aid)
-        .then(successResponse=>{
-            if (successResponse && successResponse.status == 200){
-                this.commentList = successResponse.data;
-            }
-        })
-        .catch(failResponse=>{
-            
-        })*/
     },
     //阅读量增加
     mounted:function(){
@@ -195,41 +184,39 @@ export default {
     computed:{
         is_mine(){
             return this.$store.state.user.id==this.article.uid;
-        }
+        },
+    },
+    watch:{
+        article:{
+            handler(val, oldVal){
+                if (val.publishDate){
+                    val.publishDate = dateFilter.filt(val.publishDate);
+                }
+            },
+            deep: true,
+        },
     }
 }
 </script>
 <style scoped>
 .container{
+    z-index: 0;
     background: white;
     height: 100%;
     width: 80%;
 }
-/*头部*/
-.header{
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: flex-start;
-    padding: 20px 10px 20px 10px;
-}
 .button{
     width:45%;
 }
-.title-header{
-    flex-grow: 2;
-    padding:20px;
-}
-.title{
-    margin-block-start:0px;
-    text-align: left;
-}
 /**内容 */
 .content{
+    z-index: 1;
+    background: white;
     white-space: pre-line;
-    width: 60%;
-    text-align: center;
+    width: 100%;
+    text-align: left;
     margin: 0 auto;
+    padding: 24px 0;
     min-height: 200px;
 }
 .buttons{
@@ -238,18 +225,14 @@ export default {
     top:50%;
 }
 .author-card{
+    float:left;
     width:240px;
     min-width: 240px;
+    margin:0px 10px 10px 0px;
 }
-.detail{
-    text-align: end;
-    font-size: 14px;
-    color:#909399
-}
-#publish-date::before{
-    content:'发布日期 '
-}
-#read-num::before{
-    content: '阅读量 ';
+.comment{
+    padding:0 20px 0 20px;
+    background: white;
+    z-index: 1;
 }
 </style>

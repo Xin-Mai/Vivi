@@ -53,12 +53,7 @@ export default {
                     content: this.content,
                     tag: this.tag,
                     id: this.aid,
-                },
-                {
-                    headers:{
-                        'token': this.$store.state.token,
-                    },
-                },)
+                })
                 .then(successResponse=>{
                     if(successResponse && successResponse.status==200){
                         if (successResponse.data.code == 0){

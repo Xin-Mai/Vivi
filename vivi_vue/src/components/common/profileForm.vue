@@ -179,11 +179,7 @@ export default {
                 username: this.infoForm.username,
                 
               };
-              this.$axios.post('/user/update/info',result,{
-                headers:{
-                  token: this.$store.state.token,
-                }
-              }).then((successResponse)=>{
+              this.$axios.post('/user/update/info',resul).then((successResponse)=>{
                 if (successResponse && successResponse.status == 200){
                   if (successResponse.data.code == 0){
                     this.$message({
@@ -213,10 +209,6 @@ export default {
             this.$axios.post('/user/update/pwd',{
                 oldPwd: this.editForm.old_password,
                 newPwd: this.infoForm.password,
-            },{
-                headers:{
-                    token:this.$store.state.token,
-                }
             }).then((successResponse)=>{
                 if (successResponse && successResponse.status == 200){
                     if(successResponse.data.code == 0){
