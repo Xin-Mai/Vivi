@@ -1,6 +1,7 @@
 import store from '@/store'
 import axios from 'axios';
-const baseURL = 'http://localhost:8080/api';
+const baseURL = 'https://vlive.uniqueandroid.com:10005/api';
+//const baseURL = 'http://localhost:8080/api';
 const defaultUrl = "https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png";
 export default{
     async getAvatar(uid){

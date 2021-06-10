@@ -16,7 +16,8 @@ const urls = [
   '/article/like',
   '/comment/publish',
 ]
-axios.defaults.baseURL = 'http://localhost:8080/api'
+axios.default.baseURL = '/api'
+//axios.defaults.baseURL = 'http://localhost:8080/api'
 Vue.prototype.$axios = axios
 Vue.config.productionTip = false
 

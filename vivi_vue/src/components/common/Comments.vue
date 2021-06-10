@@ -177,14 +177,18 @@ export default {
             //回复评论的
             comment.publishDate = dateFilter.filt(comment.publishDate);
             if (comment.quote){
+                //console.log('has quote');
                 let flag = 0;
                 for (let i = (this.currentPage-1)*this.pageSize;i<this.commentList.length;i++){
+                    //console.log(this.commentList[i]._id,comment.quote);
                     if (this.commentList[i]._id == comment.quote){
                         this.commentList[i].replyList.push(comment);
                         flag = 1;
                     }
-                    else{
-                        for (let reply of commentList[i].replyList){
+                    else {
+                        //console.log("else see replyList");
+                        for (let reply of this.commentList[i].replyList){
+                            //console.log(reply._id,comment.quote);
                             if (reply._id == comment.quote){
                                 flag = 1;
                                 break;
@@ -277,7 +281,7 @@ export default {
 <style scoped>
 /**评论区标题字体 */
 .container{
-    width:100%;
+    width:100%; 
 }
 .el-divider{
     height: 1px;

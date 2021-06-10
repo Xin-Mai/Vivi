@@ -129,8 +129,8 @@ async fn shutdown_signal() {
 
 #[tokio::main]
 async fn main() {
-    // let addr = SocketAddr::from(([127, 0, 0, 1], 12306));
-    let addr = SocketAddr::from(([10, 0, 12, 6], 12306));
+    let addr = SocketAddr::from(([127, 0, 0, 1], 12306));
+    // let addr = SocketAddr::from(([10, 0, 12, 6], 12306));
 
     let make_svc = make_service_fn(|_conn| async { Ok::<_, Infallible>(service_fn(entry)) });
 
