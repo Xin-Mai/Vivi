@@ -163,6 +163,7 @@ export default {
 }
 .name:hover{
     color: var(--name-hover-color);
+    color: white;
 }
 .intro{
     font-size: var(--intro-font-size);
